@@ -8,6 +8,7 @@ using namespace std;
 
 class Player {
     //private:
+    public:
     int m_player_id;
     int m_team_id;
     int m_games_played;
