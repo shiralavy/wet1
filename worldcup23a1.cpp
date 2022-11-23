@@ -3,16 +3,10 @@
 int world_cup_t::m_best_player = 0;
 int world_cup_t::m_num_players = 0;
 
-/**************************************** private functions**********************************/
-bool world_cup_t::TeamExists(int teamID){
 
-}
-
-
-/********************************end of private functions*************************************/
 world_cup_t::world_cup_t()
 {
-	// TODO: Your code goes here
+	// TODO: Your code goes here 
 }
 
 world_cup_t::~world_cup_t()
@@ -25,6 +19,20 @@ StatusType world_cup_t::add_team(int teamId, int points)
 {
 	if (teamId <= 0 || points < 0) {
 		return StatusType::INVALID_INPUT;
+	}	
+	if (!this->m_root_teams){
+		this->m_root_teams = *(this->m_root_teams).insert_team(this->m_root_teams,teamId, points);
+		if(!this->m_root_teams){
+			return StatusType::ALLOCATION_ERROR;
+		} 
+		else{
+			return StatusType::SUCCESS;
+		}
+	}
+	else{
+		if (find_team(this->m_root_teams, teamId) != nullptr){
+			return StatusType::FAILURE;
+		}
 	}
 
 	return StatusType::SUCCESS;

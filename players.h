@@ -7,7 +7,7 @@
 using namespace std;
 
 class Player {
-    private:
+    //private:
     int m_player_id;
     int m_team_id;
     int m_games_played;
@@ -18,8 +18,8 @@ class Player {
 
     int m_height_general_id;
     int m_height_general_score;
-    int m_height_team_id;
-    int m_height_team_score;
+    int m_height_team_id; 
+
     //for AVL tree containing all players sorted by player ID:
     shared_ptr<Player> m_left_general_id; 
     shared_ptr<Player> m_right_general_id; 
@@ -29,12 +29,11 @@ class Player {
     //for AVL tree inside a specific team containing all players in that team sorted by player ID:
     shared_ptr<Player> m_left_team_id; 
     shared_ptr<Player> m_right_team_id; 
-    //for AVL tree inside a specific team containing all players in that team sorted by player score:
-    shared_ptr<Player> m_left_team_score; 
-    shared_ptr<Player> m_right_team_score; 
-    shared_ptr<Player> m_prev_team_score;  
+    //for linked list containing all players sorted by score
+    shared_ptr<Player> m_next_list_scores; 
+    shared_ptr<Player> m_prev_list_scores; 
 
-    public:
+    //public:
     /***********************************************************
          * Player: constructor for Player
          * 
@@ -48,9 +47,9 @@ class Player {
 
     Player(int player_id, int team_id, int games_played, int goals, int cards, bool goalkeeper) : 
     m_player_id(player_id), m_team_id(team_id), m_games_played(games_played), m_goals(goals), m_cards(cards), m_goalkeeper(goalkeeper), m_closest_player(0),
-    m_height_general_id(0), m_height_general_score(0), m_height_team_id(0), m_height_team_score(0)
+    m_height_general_id(0), m_height_general_score(0), m_height_team_id(0)
     /*m_left_general_id(nullptr), m_right_general_id(nullptr), m_left_general_score(nullptr), m_right_general_score(nullptr), 
-    m_left_team_id(nullptr), m_right_team_id(nullptr), m_left_team_score(nullptr), m_right_team_score(nullptr), m_prev_team_score(nullptr) */
+    m_left_team_id(nullptr), m_right_team_id(nullptr) */
     {};
 
     /***********************************************************

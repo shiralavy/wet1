@@ -27,9 +27,7 @@ private:
 	shared_ptr<Player> m_root_players_by_score; //AVL tree containing all of the players in the tournament sorted by score
 	shared_ptr<Team> m_root_teams; //AVL tree containing all of the teams in the tournament sorted by ID
 
-	/**************************************** private functions**********************************/
-	bool TeamExists(int teamID);
-
+	
 public:
 	// <DO-NOT-MODIFY> {
 	
