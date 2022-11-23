@@ -1,5 +1,15 @@
 #include "worldcup23a1.h"
 
+int world_cup_t::m_best_player = 0;
+int world_cup_t::m_num_players = 0;
+
+/**************************************** private functions**********************************/
+bool world_cup_t::TeamExists(int teamID){
+
+}
+
+
+/********************************end of private functions*************************************/
 world_cup_t::world_cup_t()
 {
 	// TODO: Your code goes here
@@ -13,7 +23,10 @@ world_cup_t::~world_cup_t()
 
 StatusType world_cup_t::add_team(int teamId, int points)
 {
-	// TODO: Your code goes here
+	if (teamId <= 0 || points < 0) {
+		return StatusType::INVALID_INPUT;
+	}
+
 	return StatusType::SUCCESS;
 }
 

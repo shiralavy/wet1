@@ -16,13 +16,20 @@
 #define WORLDCUP23A1_H_
 
 #include "wet1util.h"
+#include "players.h"
+#include "teams.h"
 
 class world_cup_t {
 private:
-	//
-	// Here you may add anything you want
-	//
-	
+	static int m_best_player;
+	static int m_num_players;
+	shared_ptr<Player> m_root_players_by_id; //AVL tree containing all of the players in the tournament sorted by ID
+	shared_ptr<Player> m_root_players_by_score; //AVL tree containing all of the players in the tournament sorted by score
+	shared_ptr<Team> m_root_teams; //AVL tree containing all of the teams in the tournament sorted by ID
+
+	/**************************************** private functions**********************************/
+	bool TeamExists(int teamID);
+
 public:
 	// <DO-NOT-MODIFY> {
 	
