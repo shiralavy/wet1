@@ -4,12 +4,14 @@
 int world_cup_t::m_best_player = 0;
 int world_cup_t::m_num_players = 0;
 
+
+/****************Begining implementation AVL tree for Teams******************************/
+/*
 int world_cup_t::max(int a, int b)
 {
 	return (a > b) ? a : b;
 }
 
-/****************Begining implementation AVL tree for Teams******************************/
 int world_cup_t::calc_height_teams(shared_ptr<Team> node)
 {
 	int h = 0;
@@ -243,12 +245,13 @@ shared_ptr<Team> deleteNode(shared_ptr<Team> node, int teamId)
         return node;
     }
 
-    */
+   
 
 }
 
 /*******************************end of AVL tree for Teams*****************************************/
 /****************Begining implementation AVL tree for Players sorted by player ID*****************/
+/*
 int world_cup_t::calc_BF_players_ID(shared_ptr<Player> player)
 {
 	if (!player)
@@ -351,6 +354,8 @@ shared_ptr<Player> world_cup_t::insert_player_ID(shared_ptr<Player> nodePlayer, 
 
 /****************************end of AVL tree for Players by player ID*************************************/
 /****************Begining implementation AVL tree for Players sorted by player SCORE*****************/
+
+/*
 int world_cup_t::calc_BF_players_scores(shared_ptr<Player> player){
 	if (!player)
 	{
