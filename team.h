@@ -12,7 +12,7 @@ class Team {
     int m_points;
     int m_num_players;
     //bool m_ready_to_play; //boolean value if this team is ready to play (has 11 players and one goalkeeper)
-    AVLtree<Node<player_in_team>> m_tree_players_in_team;
+    shared_ptr<AVLtree<Node<player_in_team>>> m_tree_players_in_team;
 
     /***********************************************************
          * Team: constructor for Team
@@ -21,15 +21,13 @@ class Team {
          * @param m_points number of points this team has
     ***********************************************************/
 
-    Team(int team_id, int points) : m_team_id(team_id), m_points(points), m_num_players(0) {};
+    Team(int team_id, int points, int num_players = 0, shared_ptr<AVLtree<Node<player_in_team>>> tree_players = nullptr) : m_team_id(team_id), m_points(points), m_num_players(num_players), m_tree_players_in_team(tree_players){}; 
 
     /***********************************************************
     * ~Team: destructor for Team
     ***********************************************************/
 
     ~Team() = default;
-
-
 
 
 };

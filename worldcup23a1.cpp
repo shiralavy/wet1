@@ -5,10 +5,6 @@ int world_cup_t::m_best_player = 0;
 int world_cup_t::m_num_players = 0;
 
 
-/****************Begining implementation AVL tree for Teams******************************/
-
-
-/*******************************************************************/
 world_cup_t::world_cup_t()
 {
 	// TODO: Your code goes here
@@ -23,25 +19,21 @@ StatusType world_cup_t::add_team(int teamId, int points)
 {
 	if (teamId <= 0 || points < 0)
 	{
+		//invalid teamId or points values 
 		return StatusType::INVALID_INPUT;
 	}
-	if (!this->m_root_teams)
-	{
-		this->m_root_teams = insert_team(this->m_root_teams, teamId, points);
-		if (!this->m_root_teams)
-		{
-			return StatusType::ALLOCATION_ERROR;
-		}
-		else
-		{
-			return StatusType::SUCCESS;
-		}
+	if (this->m_tree_teams_by_id->findNode(this->m_tree_teams_by_id->m_root, teamId) != nullptr){
+		//there is already a team with this ID in the tournament 
+		return StatusType::FAILURE;
 	}
-	else
-	{
-		if (find_team(this->m_root_teams, teamId) != nullptr)
-		{
-			return StatusType::FAILURE;
+	else{
+		try {
+        shared_ptr<Team> new_team = make_shared(teamId,points);
+		shared_ptr<Node<Team>> root = this->m_tree_teams_by_id->m_root;
+		this->m_tree_teams_by_id->insertNode(root, teamId, new_team);
+    	}
+    	catch (std::bad_alloc &) {
+        	return StatusType::ALLOCATION_ERROR;
 		}
 	}
 

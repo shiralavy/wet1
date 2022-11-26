@@ -14,7 +14,7 @@ class ready_team {
     shared_ptr<Node<Team>> m_team; 
 
     /***********************************************************
-         * Team: constructor for Team
+         * ready_team: constructor for ready_team
          * 
          * @param m_team_id the team's team
          * @param m_team the corresponding team
@@ -23,7 +23,7 @@ class ready_team {
     ready_team(int team_id, shared_ptr<Node<Team>> team) : m_team_id(team_id), m_team(team){};
 
     /***********************************************************
-    * ~Team: destructor for Team
+    * ~ready_team: destructor for ready_team
     ***********************************************************/
 
     ~ready_team() = default;

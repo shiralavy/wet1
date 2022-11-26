@@ -20,12 +20,15 @@ template <class T>
 class Node{
     int m_key;
     int m_height;
-    T m_data_element;
+    shared_ptr<T> m_data_element;
     shared_ptr<Node<T>> m_left_son;
     shared_ptr<Node<T>> m_right_son;
 
  bool operator==(const Node& other) const;
-    
+ Node(int key = -1, shared_ptr<T> data_element = nullptr, int height = 0, shared_ptr<Node<T>> left_son = nullptr,
+         shared_ptr<Node<T>> right_son = nullptr); 
+ ~Node();
+  bool Node<T>::operator==(const Node& other) const;  
 };
 
 /**************Node functions*****************/
@@ -35,19 +38,32 @@ bool Node<T>::operator==(const Node& other)const{
 }
 
 template <class T>
+Node<T>::Node(int key, shared_ptr<T> data_element, int height, shared_ptr<Node<T>> left_son,
+         shared_ptr<Node<T>> right_son) :
+        m_key(key), m_data_element(element), m_height(height), m_left_son(left_son), m_right_son(right_son) {}
+
+template <class T>
+Node<T>::~Node()
+{
+    delete m_data_element;
+}
+
+/**************end of Node functions*******/
+
+template <class T>
 class AVLtree{
     public:
     shared_ptr<Node<T>> m_root;
     int m_highest_key;
     int m_lowest_key;
     
-    AVLtree() : root(nullptr), m_highest_key(0), m_lowest_key(0){};
+    AVLtree() : m_root(nullptr), m_highest_key(0), m_lowest_key(0){};
     //AVLtree(shared_ptr<Node<T>> root) : m_root(root) {};
     ~AVLtree() = default; //is this default or do we need to implement?
     int calcHeight(shared_ptr<Node<T>> m_node);
     int getBalance(shared_ptr<Node<T>> m_node);
     shared_ptr<Node<T>> findNode(shared_ptr<Node<T>> root, int key);
-    shared_ptr<Node<T>> insertNode(shared_ptr<Node<T>> root, int key, T& data_element)
+    shared_ptr<Node<T>> insertNode(shared_ptr<Node<T>> root, int key, shared_ptr<T> data_element);
     shared_ptr<Node<T>> RotateLL(shared_ptr<Node<T>> node);
     shared_ptr<Node<T>> RotateRR(shared_ptr<Node<T>> node);
     shared_ptr<Node<T>> RotateRL(shared_ptr<Node<T>> node);
@@ -120,7 +136,7 @@ shared_ptr<Node<T>> AVLtree<T>::findNode(shared_ptr<Node<T>> root, int key)
 }
 
 template <class T>
-shared_ptr<Node<T>> AVLtree<T>::insertNode(shared_ptr<Node<T>> root, int key, T& data_element)
+shared_ptr<Node<T>> AVLtree<T>::insertNode(shared_ptr<Node<T>> root, int key, shared_ptr<T> data_element)
 {
 	if (root == nullptr)
 	{
