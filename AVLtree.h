@@ -2,7 +2,10 @@
 #define AVLTREE_H
 
 
-#include <iostream>
+//#include <iostream>
+#include <stdexcept>
+#include <memory>
+using namespace std;
 
 typedef enum {
     AVL_SUCCESS,
@@ -18,8 +21,8 @@ class Node{
     int m_key;
     int m_height;
     T m_data_element;
-    shared_ptr<T> m_left_son;
-    shared_ptr<T> m_right_son;
+    shared_ptr<Node<T>> m_left_son;
+    shared_ptr<Node<T>> m_right_son;
 
  bool operator==(const Node& other) const;
     
@@ -36,9 +39,7 @@ class AVLtree{
     public:
     shared_ptr<Node<T>> m_root;
     int m_highest_key;
-    int m_second_highest_key;
     int m_lowest_key;
-    int m_second_lowest_key;
     
     AVLtree() : root(nullptr), m_highest_key(0), m_lowest_key(0){};
     //AVLtree(shared_ptr<Node<T>> root) : m_root(root) {};
@@ -46,12 +47,14 @@ class AVLtree{
     int calcHeight(shared_ptr<Node<T>> m_node);
     int getBalance(shared_ptr<Node<T>> m_node);
     shared_ptr<Node<T>> findNode(shared_ptr<Node<T>> root, int key);
-    shared_ptr<Node<T>> insertNode(shared_ptr<Node<T>> node)
-    AVLResult RotateLL(shared_ptr<Node<T>> node);
-    AVLResult RotateRR(shared_ptr<Node<T>> node);
-    AVLResult RotateRL(shared_ptr<Node<T>> node);
-    AVLResult RotateLR(shared_ptr<Node<T>> node);
-    AVLResult deleteNode(shared_ptr<Node<T>> node, int key);
+    shared_ptr<Node<T>> insertNode(shared_ptr<Node<T>> root, int key, T& data_element)
+    shared_ptr<Node<T>> RotateLL(shared_ptr<Node<T>> node);
+    shared_ptr<Node<T>> RotateRR(shared_ptr<Node<T>> node);
+    shared_ptr<Node<T>> RotateRL(shared_ptr<Node<T>> node);
+    shared_ptr<Node<T>> RotateLR(shared_ptr<Node<T>> node);
+    shared_ptr<Node<T>> deleteNode(shared_ptr<Node<T>> node, int key);
+    shared_ptr<Node<T>> minValueNode(shared_ptr<Node<T>> node);
+    int inOrderVisit(shared_ptr<Node<T>> node, int* array, int array_size);
     
 
     int max(int a, int b)
@@ -63,7 +66,7 @@ class AVLtree{
 
 /**************AVLtree functions***************/
 template <class T>
-int AVLtree<T>::calcHeight(shared_ptr<Node> node){
+int AVLtree<T>::calcHeight(shared_ptr<Node<T>> node){
     if (!node){
         return -1;
     }
@@ -98,21 +101,21 @@ shared_ptr<Node<T>> AVLtree<T>::findNode(shared_ptr<Node<T>> root, int key)
 	{
 		return nullptr;
 	}
-	if (!node)
+	if (!root)
 	{
 		return nullptr;
 	}
-	if (node->m_key == key)
+	if (root->m_key == key)
 	{
-		return node;
+		return root;
 	}
-	if (key < node->m_key)
+	if (key < root->m_key)
 	{
-		findNode(node->m_left_son, key);
+		return findNode(root->m_left_son, key);
 	}
-	if (key > node->m_key)
+	if (key > root->m_key)
 	{
-		findNode(node->m_right_son, key);
+		return findNode(root->m_right_son, key);
 	}
 }
 
@@ -121,7 +124,7 @@ shared_ptr<Node<T>> AVLtree<T>::insertNode(shared_ptr<Node<T>> root, int key, T&
 {
 	if (root == nullptr)
 	{
-        root = make_shared<Node<T>>(key, data_element);
+        root = make_shared<Node<T>>(key, data_element); //this means we need a constructor that recives variables for each data type
         return root;
 	}
     else{
@@ -133,43 +136,49 @@ shared_ptr<Node<T>> AVLtree<T>::insertNode(shared_ptr<Node<T>> root, int key, T&
         root->m_left_son = insertNode(root->m_left_son, key, data_element);
     else if (key > root->m_key)
         root->m_right_son = insertNode(root->m_right_son, key, data_element);
- 
-    root->m_height = 1 + max(height(root->m_left_son),
-                        height(root->m_right_son));
+    
+    if (key < this->m_lowest_key){
+        this->m_lowest_key = key;
+    }
+    else if (key > this->m_highest_key){
+        this->m_highest_key = key;
+    }
+    root->m_height = 1 + max(calcHeight(root->m_left_son),
+                        calcHeight(root->m_right_son));
  
 
-	int balance_factor = getBalance(node);
+	int balance_factor = getBalance(root);
 	if (balance_factor == 2 && getBalance(node->m_left_son) == 1)
 	{
-        AVLResult res = RotateLL(root);
-        if (res == AVL_SUCCESS){
-            return root;
-        }
-		// LL ROTATION
+        // LL ROTATION
+        return RotateLL(root)
 	}
 	else if (balance_factor == -2 && getBalance(node->m_right_son) == -1)
 	{
 		// RR ROTATION
+        return RotateRR(root);
 	}
 	else if (balance_factor == -2 && getBalance(node->m_right_son) == 1)
 	{
 		// RL ROTATION
+        return RotateRL(root);
 	}
 	else if (balance_factor == 2 && getBalance(node->m_left_son) == -1)
 	{
 		// LR ROTATION
+        return RotateLR(root);
 	}
     return root;
 }
 
 
 
-template <class T>
- AVLResult AVLtree<T>::RotateLL(shared_ptr<Node<T>> node)
+template <class T>//change names var
+shared_ptr<Node<T>> AVLtree<T>::RotateLL(shared_ptr<Node<T>> node)
  {
     if(node==nullptr)
     {
-        return  AVL_NULL_ARGUMENT;
+        return  nullptr;
     }
     shared_ptr<Node<T>> temp;
 	shared_ptr<Node<T>> tp;
@@ -177,17 +186,17 @@ template <class T>
 	tp = temp->m_left_son;
 	temp->m_left_son= tp->m_right_son;
 	tp->m_right_son = temp;
-	return AVL_SUCCESS;
+	return tp;
  }
 
 
 template <class T>
- AVLResult AVLtree<T>::RotateRR(shared_ptr<Node<T>> node)
+ shared_ptr<Node<T>> AVLtree<T>::RotateRR(shared_ptr<Node<T>> node)
  {
     
     if (node== nullptr)
     {
-        return AVL_NULL_ARGUMENT;
+        return nullptr;
     }
     shared_ptr<Team> temp;
 	shared_ptr<Team> tp;
@@ -196,80 +205,128 @@ template <class T>
 
 	temp->m_right_team = tp->m_left_team;
 	tp->m_left_team = temp;
-	return AVL_SUCCESS;
+
+	return tp;
  }
  
 
- template <class T>
- AVLResult AVLtree<T>::RotateLR(shared_ptr<Node<T>> node)
+ template <class T>// need to finish rotate
+shared_ptr<Node<T>> AVLtree<T>::RotateLR(shared_ptr<Node<T>> node)
  {
-    AVLResults res1=RotateLL(node->m_left_son)
-    AVLResults res2=RotateLL(node);
-    if(res1 == AVL_SUCCESS && res2 == AVL_SUCCESS)
+    shared_ptr<Node<T>> res1=RotateRR(node->m_right_son)
+    shared_ptr<Node<T>> res2=RotateLL(node);
+    if(res1 !=nullptr && res2 !=nullptr)
     {
-        return AVL_SUCCESS;
+        return res2;
     }
     else
     {
-        return AVL_NULL_ARGUMENT;
+        return nullptr;
     }
  }
-
+ 
  
  template <class T>
- AVLResult AVLtree<T>::RotateRL(shared_ptr<Node<T>> node)
+shared_ptr<Node<T>> AVLtree<T>::RotateRL(shared_ptr<Node<T>> node)
  {
-    AVLResults res1=RotateLL(node->m_left_right)
-    AVLResults res2=RotateLL(node);
-    if(res1 == AVL_SUCCESS && res2 == AVL_SUCCESS)
+    AVLResults res1=RotateLL(node->m_left_son)//fix this functio jonah
+    AVLResults res2=RotateRR(node);
+    if(res1 != nullptr&& res2 != nullptr)
     {
-        return AVL_SUCCESS;
+        return res2;
     }
     else
     {
-        return AVL_NULL_ARGUMENT;
+        return nullptr;
     }
  }
 
-   AVLResult AVLtree<T>:: deleteNode(shared_ptr<Node<T>> node, int key)
+template<class T>
+shared_ptr<Node<T>> AVLtree<T>:: minValueNode(shared_ptr<Node<T>> node) 
+{ 
+    shared_ptr<Node<T>> current = node; 
+  
+    /* loop down to find the leftmost leaf */
+    while (current->m_left_son != nullptr) 
+        current = current->m_left_son; 
+  
+    return current; 
+}
+
+  template<class T>
+ shared_ptr<Node<T>> AVLtree<T>:: deleteNode(shared_ptr<Node<T>> root, int key)//add a check for the best player 
    {
-    if(node==nullptr)
+    if(root==nullptr)
     {
-        return AVL_NULL_ARGUMENT;
+        return nullptr;
+    }
+    
+     if(findNode(root,key)==nullptr)//this is if we dont find the node with the key 
+    {
+        return nullptr;
     }
 
-    if(key<node->m_key)
+    if(key<root->m_key)
     {
-        node->m_left_son=deleteNode(node->m_left_son,key);
-        if(getBalance(node)==-2)
+        root->m_left_son=deleteNode(root->m_left_son,key);
+        if(getBalance(root)==-2)
         {
-            if(getBalance(node->m_right_son)<=0)
+            if(getBalance(root->m_right_son)<=0)//check 
             {
-                node=RotateRR(node);
+                root=RotateRR(root);
             }
             else
-                node=RotateRL(node);
+                root=RotateRL(root);
         }
     }
-     else if(key>node->m_key)
+     else if(key>root->m_key)
      {
-        node->m_right_son=deleteNode(node->m_right_son,key);
+        root->m_right_son=deleteNode(root->m_right_son,key);
         if(getBalance(node)==2)
         {
-            if(getBalance(node->left)>=0)
+            if(getBalance(root->left)>=0)
             {
-                node=RotateLL(node);
+                root=RotateLL(root);
             }
             else 
-                node=RotateLR(node);
+                root=RotateLR(root);
         }
      }
      //last condition on of delete 
      else
      {
-        
-     }
- }
+        if(root->m_left_son==nullptr||root->m_right_son==nullptr)
+        {
+            shared_ptr<Node<T>> temp;
+            if(root->m_left_son)
+            {
+                temp=root->m_left_son;
+            }
+            else
+            {
+                 temp=root->m_right_son;
+            }
+
+            if(temp==nullptr)
+            {
+                temp=root;
+                root=nullptr;
+            }
+            else
+            {
+                root=temp;
+            }
+        }
+        else
+        {
+            shared_ptr<Node<T>> temp1 =minValueNode(root->m_right_son);
+
+
+        }
+      
+    }
+
+}
    
 
 
@@ -355,7 +412,18 @@ shared_ptr<Team> minValueNode(shared_ptr<Team> node) //helps the delete function
     return current; 
 } 
 */
-
+template <class T>
+int AVLtree<T>::inOrderVisit(shared_ptr<Node<T>> node, int* array, int start_index){
+    if (!node){
+        return start_index;
+    }
+    else{
+        int index_after_left_visit = inOrderVisit(node->m_left_son, array, start_index);
+        array[index_after_left_visit] = node->m_key;
+        int index_after_right_visit = inOrderVisit(node->m_right_son, array, index_after_left_visit + 1);
+        return index_after_right_visit;
+    }
+}
 
 	
 

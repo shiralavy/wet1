@@ -1,21 +1,18 @@
-#ifndef TEAMS_H_
-#define TEAMS_H_
+#ifndef TEAM_H_
+#define TEAM_H_
 
 #include <stdexcept>
-#include "players.h"
+#include "player.h"
+#include "AVLtree.h"
 
 class Team {
     //private:
     public:
     int m_team_id;
     int m_points;
-    bool m_ready_to_play; //boolean value if this team is ready to play (has 11 players and one goalkeeper)
-    int m_height_teams;
-
-    shared_ptr<Player> m_root_players_by_id;
-
-    shared_ptr<Team> m_left_team;
-    shared_ptr<Team> m_right_team;
+    int m_num_players;
+    //bool m_ready_to_play; //boolean value if this team is ready to play (has 11 players and one goalkeeper)
+    AVLtree<Node<player_in_team>> m_tree_players_in_team;
 
     /***********************************************************
          * Team: constructor for Team
@@ -24,7 +21,7 @@ class Team {
          * @param m_points number of points this team has
     ***********************************************************/
 
-    Team(int team_id, int points) : m_team_id(team_id), m_points(points), m_ready_to_play(false), m_height_teams(0) {};
+    Team(int team_id, int points) : m_team_id(team_id), m_points(points), m_num_players(0) {};
 
     /***********************************************************
     * ~Team: destructor for Team
