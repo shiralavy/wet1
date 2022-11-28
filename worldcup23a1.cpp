@@ -1,14 +1,46 @@
 #include "worldcup23a1.h"
 #define ONE 1
 
-int world_cup_t::m_best_player = 0;
-int world_cup_t::m_num_players = 0;
 
-
-world_cup_t::world_cup_t()
+world_cup_t::world_cup_t() : m_best_player(0), m_num_players(0)
 {
-	// TODO: Your code goes here
+	try
+	{
+		m_tree_players_by_id = make_shared<AVLtree<player>>();
+	}
+	catch (std::bad_alloc &)
+	{
+		throw;
+	}
+	try
+	{
+		m_tree_players_by_score = make_shared<AVLtree<player_in_scoreboard>>();
+	}
+	catch (std::bad_alloc &)
+	{
+		//need to delete m_tree_players_by_id - will the d'tor be called automatically because of the shared_ptr?
+		throw;
+	}
+	try
+	{
+		m_tree_teams_by_id = make_shared<AVLtree<Team>>();
+	}
+	catch (std::bad_alloc &)
+	{
+		//need to delete m_tree_players_by_id and m_tree_players_by_score?
+		throw;
+	}
+	try
+	{
+		m_tree_ready_teams = make_shared<AVLtree<ready_team>>();
+	}
+	catch (std::bad_alloc &)
+	{
+		//need to delete m_tree_players_by_id and m_tree_players_by_score and m_tree_teams_by_id?
+		throw;
+	}
 }
+
 
 world_cup_t::~world_cup_t()
 {
@@ -19,21 +51,25 @@ StatusType world_cup_t::add_team(int teamId, int points)
 {
 	if (teamId <= 0 || points < 0)
 	{
-		//invalid teamId or points values 
+		// invalid teamId or points values
 		return StatusType::INVALID_INPUT;
 	}
-	if (this->m_tree_teams_by_id->findNode(this->m_tree_teams_by_id->m_root, teamId) != nullptr){
-		//there is already a team with this ID in the tournament 
+	if (this->m_tree_teams_by_id->findNode(this->m_tree_teams_by_id->m_root, teamId) != nullptr)
+	{
+		// there is already a team with this ID in the tournament
 		return StatusType::FAILURE;
 	}
-	else{
-		try {
-        shared_ptr<Team> new_team = make_shared(teamId,points);
-		shared_ptr<Node<Team>> root = this->m_tree_teams_by_id->m_root;
-		this->m_tree_teams_by_id->insertNode(root, teamId, new_team);
-    	}
-    	catch (std::bad_alloc &) {
-        	return StatusType::ALLOCATION_ERROR;
+	else
+	{
+		try
+		{
+			shared_ptr<Team> new_team = make_shared<Team>(teamId, points);
+			shared_ptr<Node<Team>> root = this->m_tree_teams_by_id->m_root;
+			this->m_tree_teams_by_id->insertNode(root, teamId, new_team);
+		}
+		catch (std::bad_alloc &)
+		{
+			return StatusType::ALLOCATION_ERROR;
 		}
 	}
 
