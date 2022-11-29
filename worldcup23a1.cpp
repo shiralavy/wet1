@@ -40,9 +40,10 @@ world_cup_t::world_cup_t() : m_best_player(-1), m_num_players(0)
 	}
 }
 
+//will need to delete ptr's since we are not using shared ptr 
 world_cup_t::~world_cup_t()
 {
-	// TODO: Your code goes here
+
 }
 
 StatusType world_cup_t::add_team(int teamId, int points)
@@ -61,8 +62,8 @@ StatusType world_cup_t::add_team(int teamId, int points)
 	{
 		try
 		{
-			shared_ptr<Team> new_team = make_shared<Team>(teamId, points);
-			shared_ptr<Node<Team>> root = this->m_tree_teams_by_id->m_root;
+			Node<Team>* new_team = new Node<Team>(teamId, points);//ask shira if change is good 
+			Node<Team>* root = this->m_tree_teams_by_id->m_root;
 			this->m_tree_teams_by_id->insertNode(root, teamId, new_team);
 		}
 		catch (std::bad_alloc &)
@@ -76,7 +77,22 @@ StatusType world_cup_t::add_team(int teamId, int points)
 
 StatusType world_cup_t::remove_team(int teamId)
 {
-	// TODO: Your code goes here
+	if (teamId <= 0)
+	{
+		return StatusType::INVALID_INPUT;
+	}
+	Node<Team>* TeamToRemove = (this->m_tree_teams_by_id->findNode(this->m_tree_teams_by_id->m_root, teamId));
+	
+	//this checks if the team does not exsist and if the team is empty 
+	if (TeamToRemove == nullptr || TeamToRemove->m_data_element->m_num_players != 0)
+	{
+		return StatusType::FAILURE;
+	}
+
+	//to be cotinued 
+
+	
+	
 	return StatusType::FAILURE;
 }
 
