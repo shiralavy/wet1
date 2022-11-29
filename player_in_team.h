@@ -2,7 +2,7 @@
 #define PLAYERS_IN_TEAM_H_
 
 #include <stdexcept>
-#include <memory>
+//#include <memory>
 #include "player.h"
 #include "AVLtree.h"
 
@@ -17,8 +17,8 @@ class player_in_team {
     int m_goals;
     int m_cards;
     bool m_goalkeeper;
-    shared_ptr<Node<player>> m_player;
-    shared_ptr<Node<Team>> m_my_team;
+    Node<player>* m_player;
+    Node<Team>* m_my_team;
 
    /***********************************************************
          * player_in_team: constructor for player_in_team
@@ -33,7 +33,7 @@ class player_in_team {
          * @param m_my_team a pointer to the team this player belongs to
     ***********************************************************/
 
-    player_in_team(int player_id, int team_id, int games_played, int goals, int cards, bool goalkeeper, shared_ptr<Node<player>> player = nullptr, shared_ptr<Node<Team>> team = nullptr) : 
+    player_in_team(int player_id, int team_id, int games_played, int goals, int cards, bool goalkeeper, Node<player>* player = nullptr, Node<Team>* team = nullptr) : 
     m_player_id(player_id), m_team_id(team_id), m_games_played(games_played), m_goals(goals), m_cards(cards), m_goalkeeper(goalkeeper), m_player(player), m_my_team(team)
     {};
 

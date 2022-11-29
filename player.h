@@ -36,12 +36,9 @@ class player {
     ***********************************************************/
 
     player(int player_id, int team_id, int games_played, int goals, int cards, bool goalkeeper) : 
-    m_player_id(player_id), m_team_id(team_id), m_games_played(games_played), m_goals(goals), m_cards(cards), m_goalkeeper(goalkeeper)
-    {
-        m_player_in_team = new Node<player_in_team>(player_id);
-        m_player_in_scoreboard = new Node<player_in_scoreboard>(player_id);
-
-    };
+    m_player_id(player_id), m_team_id(team_id), m_games_played(games_played), m_goals(goals), m_cards(cards), 
+    m_goalkeeper(goalkeeper), m_player_in_team(nullptr), m_player_in_scoreboard(nullptr)
+    {};
 
     /***********************************************************
     * ~Player: destructor for Player

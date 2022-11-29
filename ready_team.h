@@ -20,9 +20,7 @@ class ready_team {
          * @param m_team the corresponding team
     ***********************************************************/
 
-    ready_team(int team_id, Node<Team>* team) : m_team_id(team_id){
-        m_team = new Node<Team>(team_id);
-    };
+    ready_team(int team_id, Node<Team>* team = nullptr) : m_team_id(team_id), m_team(team){};
 
     /***********************************************************
     * ~ready_team: destructor for ready_team

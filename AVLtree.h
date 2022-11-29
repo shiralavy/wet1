@@ -21,7 +21,7 @@ class Node
 public:
     int m_key;
     int m_height;
-    T m_data_element;
+    T m_element;
     Node<T> *m_left_son;
     Node<T> *m_right_son;
 
@@ -41,12 +41,11 @@ bool Node<T>::operator==(const Node &other) const
 
 template <class T>
 Node<T>::Node(const T &data_element, int key, int height, Node<T> *left_son,
-              Node<T> *right_son) : m_data_element(data_element), m_key(key), m_height(height), m_left_son(left_son), m_right_son(right_son) {}
+              Node<T> *right_son) : m_element(data_element), m_key(key), m_height(height), m_left_son(left_son), m_right_son(right_son) {}
 
 template <class T>
 Node<T>::~Node()
 {
-    delete m_data_element;
     delete m_left_son;
     delete m_right_son;
 }
@@ -173,7 +172,7 @@ Node<T> *AVLtree<T>::insertNode(Node<T> *root, int key, const T &data_element)
         {
             m_highest_key = key;
         }
-        if (m_lowest_key < key)
+        if (m_lowest_key > key)
         {
             m_lowest_key = key;
         }
@@ -372,7 +371,7 @@ Node<T> *AVLtree<T>::deleteNode(Node<T> *root, int key) // add a check for the b
             // we copy the data element and the key to the root, but keep the height and pointers to the next sons.
             // this means we changed the value of the root node without actually deleting the root
             root->m_key = new_root->m_key;
-            root->m_data_element = new_root->m_data_element;
+            root->m_element = new_root->m_element;
             // now we delete the original node that was copied to become the root, we dont need it anymore because we copied it's values
             root->m_right_node = deleteNode(root->m_right_son, root->m_key);
         }

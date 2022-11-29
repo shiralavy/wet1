@@ -62,9 +62,10 @@ StatusType world_cup_t::add_team(int teamId, int points)
 	{
 		try
 		{
-			Node<Team>* new_team = new Node<Team>(teamId, points);//ask shira if change is good 
+			Team newTeam(teamId,points);
+			//Node<Team>* newTeamNode = new Node<Team>(newTeam, teamId);
 			Node<Team>* root = this->m_tree_teams_by_id->m_root;
-			this->m_tree_teams_by_id->insertNode(root, teamId, new_team);
+			this->m_tree_teams_by_id->insertNode(root, teamId, newTeam);
 		}
 		catch (std::bad_alloc &)
 		{
@@ -84,7 +85,7 @@ StatusType world_cup_t::remove_team(int teamId)
 	Node<Team>* TeamToRemove = (this->m_tree_teams_by_id->findNode(this->m_tree_teams_by_id->m_root, teamId));
 	
 	//this checks if the team does not exsist and if the team is empty 
-	if (TeamToRemove == nullptr || TeamToRemove->m_data_element->m_num_players != 0)
+	if (TeamToRemove == nullptr || TeamToRemove->m_element->m_num_players != 0)
 	{
 		return StatusType::FAILURE;
 	}
@@ -114,45 +115,36 @@ StatusType world_cup_t::add_player(int playerId, int teamId, int gamesPlayed,
 	{ // the player does not exist, the team does exist
 		try
 		{
-			shared_ptr<player> new_player = make_shared<player>(playerId, teamId, gamesPlayed,
-																goals, cards, goalKeeper);
-			shared_ptr<Node<player>> root = this->m_tree_players_by_id->m_root;
-			this->m_tree_players_by_id->insertNode(root, teamId, new_player);
-			shared_ptr<player_in_team> new_player_in_team = make_shared<player_in_team>(playerId, teamId, gamesPlayed,
-																						goals, cards, goalKeeper);
-			shared_ptr<Node<Team>> team_for_new_player = this->m_tree_teams_by_id->findNode(this->m_tree_teams_by_id->m_root, teamId);
-			// team_for_new_player = this->m_tree_teams_by_id->findNode(this->m_tree_teams_by_id->m_root, teamId);
-			team_for_new_player->m_data_element->m_tree_players_in_team->insertNode(team_for_new_player->m_data_element->m_tree_players_in_team->m_root, playerId, new_player_in_team);
-			bool team_was_ready = team_for_new_player->m_data_element->check_team_ready();
-			team_for_new_player->m_data_element->m_num_players++;
+			//insert player into AVL TREE with players sorted by id
+			player newPlayer(playerId, teamId, gamesPlayed, goals, cards, goalKeeper);
+			Node<player>* root = this->m_tree_players_by_id->m_root;
+			this->m_tree_players_by_id->insertNode(root, playerId, newPlayer);
+			
+			//insert player into AVL TREE of players inside the appropriate team
+			Node<player>* insertedPlayer = this->m_tree_players_by_id->findNode(this->m_tree_players_by_id->m_root, playerId);
+			Node<Team>* teamForNewPlayer = this->m_tree_teams_by_id->findNode(this->m_tree_teams_by_id->m_root, teamId);
+			player_in_team newPlayerInTeam(playerId, teamId, gamesPlayed, goals, cards, goalKeeper, insertedPlayer, teamForNewPlayer);
+			teamForNewPlayer->m_element.m_tree_players_in_team->insertNode(teamForNewPlayer->m_element.m_tree_players_in_team->m_root, playerId, newPlayerInTeam);
+
+			//update the pointer of player in big AVL TREE to its location in the team
+			insertedPlayer->m_element.m_player_in_team = teamForNewPlayer->m_element.m_tree_players_in_team->findNode(teamForNewPlayer->m_element.m_tree_players_in_team->m_root, playerId);
+			
+			//if after the insertion of the player this team has now become ready, insert this team into the AVL TREE with ready teams
+			bool teamWasReady = teamForNewPlayer->m_element.check_team_ready();
+			teamForNewPlayer->m_element.m_num_players++;
 			if (goalKeeper)
 			{
-				team_for_new_player->m_data_element->m_num_goalkeeprs++;
+				teamForNewPlayer->m_element.m_num_goalkeeprs++;
 			}
-			if (!team_was_ready && team_for_new_player->m_data_element->check_team_ready())
+			if (!teamWasReady && teamForNewPlayer->m_element.check_team_ready())
 			{
-				shared_ptr<ready_team> new_ready_team = make_shared<ready_team>(team_for_new_player->m_key, team_for_new_player);
-				this->m_tree_ready_teams->insertNode(this->m_tree_ready_teams->m_root, teamId, new_ready_team);
+				ready_team newReadyTeam(teamForNewPlayer->m_key, teamForNewPlayer);
+				this->m_tree_ready_teams->insertNode(this->m_tree_ready_teams->m_root, teamId, newReadyTeam);
 			}
-			shared_ptr<Node<player_in_team>> player_in_team = team_for_new_player->m_data_element->m_tree_players_in_team->findNode(team_for_new_player->m_data_element->m_tree_players_in_team->m_root, playerId);
-			new_player->m_player_in_team->
-		}
-		catch (std::bad_alloc &)
-		{
-			return StatusType::ALLOCATION_ERROR;
-		}
-		try
-		{
-		}
-		catch (std::bad_alloc &)
-		{
-			return StatusType::ALLOCATION_ERROR;
-		}
-		try
-		{
-			shared_ptr<player_in_scoreboard> new_player_with_score = make_shared<player_in_scoreboard>();
-			shared_ptr<Node<player>> root = this->m_tree_players_by_id->m_root;
-			this->m_tree_players_by_id->insertNode(root, teamId, new_player);
+
+			//insert player into AVL TREE containing players by score
+			//code code code 
+
 		}
 		catch (std::bad_alloc &)
 		{
@@ -175,26 +167,26 @@ StatusType world_cup_t::remove_player(int playerId)
 		return StatusType::FAILURE;
 	}
 
-	Node<player_in_team>* temp_player_in_team = tempPlayer->m_data_element->m_player_in_team;
-	Node<Team>* temp_team_containing_player = temp_player_in_team->m_data_element->m_my_team;
-	if (temp_team_containing_player->m_data_element->check_team_ready())
+	Node<player_in_team>* temp_player_in_team = tempPlayer->m_element->m_player_in_team;
+	Node<Team>* temp_team_containing_player = temp_player_in_team->m_element->m_my_team;
+	if (temp_team_containing_player->m_element->check_team_ready())
 	{
 		// dont forget to relese the pointer
 		//update num_players in the team and num goalkeepers
-		temp_player_in_team->m_data_element->m_my_team->m_data_element->m_num_players--;
+		temp_player_in_team->m_element->m_my_team->m_element->m_num_players--;
 		// checks if the player to remove is a goalkeeper
-		if (temp_player_in_team->m_data_element->m_goalkeeper)
+		if (temp_player_in_team->m_element->m_goalkeeper)
 		{
-			temp_player_in_team->m_data_element->m_my_team->m_data_element->m_num_goalkeeprs--;
+			temp_player_in_team->m_element->m_my_team->m_element->m_num_goalkeeprs--;
 		}
-		if (!temp_team_containing_player->m_data_element->check_team_ready())
+		if (!temp_team_containing_player->m_element->check_team_ready())
 		{
 			//remove from tree of ready teams
 
 
 			/*Node<ready_team>* team_ready_team
-			temp_player_in_team->m_data_element->m_my_team->m_data_element->m_tree_players_in_team
-				->deleteNode(temp_player_in_team->m_data_element->m_my_team->m_data_element->m_tree_players_in_team->m_root, playerId);
+			temp_player_in_team->m_element->m_my_team->m_element->m_tree_players_in_team
+				->deleteNode(temp_player_in_team->m_element->m_my_team->m_element->m_tree_players_in_team->m_root, playerId);
 		*/
 		}
 	}
