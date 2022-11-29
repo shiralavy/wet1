@@ -11,7 +11,7 @@ class ready_team {
     int m_team_id;
     //int m_points;
     //bool m_ready_to_play; //boolean value if this team is ready to play (has 11 players and one goalkeeper)
-    shared_ptr<Node<Team>> m_team; 
+    Node<Team>* m_team; 
 
     /***********************************************************
          * ready_team: constructor for ready_team
@@ -20,13 +20,17 @@ class ready_team {
          * @param m_team the corresponding team
     ***********************************************************/
 
-    ready_team(int team_id, shared_ptr<Node<Team>> team) : m_team_id(team_id), m_team(team){};
+    ready_team(int team_id, Node<Team>* team) : m_team_id(team_id){
+        m_team = new Node<Team>(team_id);
+    };
 
     /***********************************************************
     * ~ready_team: destructor for ready_team
     ***********************************************************/
 
-    ~ready_team() = default;
+    ~ready_team(){
+        delete m_team;
+    };
 
 
 

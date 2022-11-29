@@ -6,6 +6,7 @@
 
 using namespace std;
 
+// WE NEED TO REMEMBER TO CREATE ASSIGNMENT OPERATOR FOR THIS AND ALL OF THE OTHER CLASSES
 class player {
     //private:
     public:
@@ -16,8 +17,10 @@ class player {
     int m_cards;
     //int m_closest_player;
     bool m_goalkeeper;
-    shared_ptr<Node<player_in_team>> player_in_team;
-    shared_ptr<Node<player_in_scoreboard>> player_in_scoreboard;
+    //shared_ptr<Node<player_in_team>> player_in_team;
+    //shared_ptr<Node<player_in_scoreboard>> player_in_scoreboard;
+    Node<player_in_team>* m_player_in_team;
+    Node<player_in_scoreboard>* m_player_in_scoreboard;
 
 
     //public:
@@ -34,13 +37,20 @@ class player {
 
     player(int player_id, int team_id, int games_played, int goals, int cards, bool goalkeeper) : 
     m_player_id(player_id), m_team_id(team_id), m_games_played(games_played), m_goals(goals), m_cards(cards), m_goalkeeper(goalkeeper)
-    {};
+    {
+        m_player_in_team = new Node<player_in_team>(player_id);
+        m_player_in_scoreboard = new Node<player_in_scoreboard>(player_id);
+
+    };
 
     /***********************************************************
     * ~Player: destructor for Player
     ***********************************************************/
 
-    ~player() = default;
+    ~player() {
+        delete m_player_in_team;
+        delete m_player_in_scoreboard;
+    };
 
     
 };

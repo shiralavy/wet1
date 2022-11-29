@@ -1,13 +1,13 @@
 #ifndef AVLTREE_H
 #define AVLTREE_H
 
-
-//#include <iostream>
+// #include <iostream>
 #include <stdexcept>
-#include <memory>
+// #include <memory>
 using namespace std;
 
-typedef enum {
+typedef enum
+{
     AVL_SUCCESS,
     AVL_NODE_ALREADY_EXISTS,
     AVL_NODE_DOES_NOT_EXIST,
@@ -15,65 +15,66 @@ typedef enum {
     AVL_BAD_ALLOCATION,
 } AVLResult;
 
-
 template <class T>
-class Node {
+class Node
+{
+public:
     int m_key;
     int m_height;
-    shared_ptr<T> m_data_element;
-    shared_ptr<Node<T>> m_left_son;
-    shared_ptr<Node<T>> m_right_son;
+    T m_data_element;
+    Node<T> *m_left_son;
+    Node<T> *m_right_son;
 
-    bool operator==(const Node& other) const;
- Node(int key = -1, shared_ptr<T> data_element = nullptr, int height = 0, shared_ptr<Node<T>> left_son = nullptr,
-     shared_ptr<Node<T>> right_son = nullptr); 
- ~Node();
-  bool Node<T>::operator==(const Node& other) const;  
+    bool operator==(const Node &other) const;
+    Node(const T &data_element, int key = -1, int height = 0, Node<T> *left_son = nullptr,
+         Node<T> *right_son = nullptr);
+    ~Node();
+    bool Node<T>::operator==(const Node &other) const;
 };
 
 /**************Node functions*****************/
-template<class T>
-bool Node<T>::operator==(const Node& other)const {
+template <class T>
+bool Node<T>::operator==(const Node &other) const
+{
     return m_key == other.m_key
 }
 
 template <class T>
-Node<T>::Node(int key, shared_ptr<T> data_element, int height, shared_ptr<Node<T>> left_son,
-         shared_ptr<Node<T>> right_son) :
-        m_key(key), m_data_element(element), m_height(height), m_left_son(left_son), m_right_son(right_son) {}
+Node<T>::Node(const T &data_element, int key, int height, Node<T> *left_son,
+              Node<T> *right_son) : m_data_element(data_element), m_key(key), m_height(height), m_left_son(left_son), m_right_son(right_son) {}
 
 template <class T>
 Node<T>::~Node()
 {
     delete m_data_element;
+    delete m_left_son;
+    delete m_right_son;
 }
 
 /**************end of Node functions*******/
 
 template <class T>
-class AVLtree {
+class AVLtree
+{
 public:
-    shared_ptr<Node<T>> m_root;
+    Node<T> *m_root;
     int m_highest_key;
     int m_lowest_key;
-    
+
     AVLtree() : m_root(nullptr), m_highest_key(0), m_lowest_key(0){};
-
-    AVLtree() : m_root(nullptr), m_highest_key(0), m_lowest_key(0) {};
-    //AVLtree(shared_ptr<Node<T>> root) : m_root(root) {};
-    ~AVLtree() = default; //is this default or do we need to implement?
-    int calcHeight(shared_ptr<Node<T>> m_node);
-    int getBalance(shared_ptr<Node<T>> m_node);
-    shared_ptr<Node<T>> findNode(shared_ptr<Node<T>> root, int key);
-    shared_ptr<Node<T>> insertNode(shared_ptr<Node<T>> root, int key, shared_ptr<T> data_element);
-    shared_ptr<Node<T>> RotateLL(shared_ptr<Node<T>> node);
-    shared_ptr<Node<T>> RotateRR(shared_ptr<Node<T>> node);
-    shared_ptr<Node<T>> RotateRL(shared_ptr<Node<T>> node);
-    shared_ptr<Node<T>> RotateLR(shared_ptr<Node<T>> node);
-    shared_ptr<Node<T>> deleteNode(shared_ptr<Node<T>> node, int key);
-    shared_ptr<Node<T>> AVLtree<T>::minValueNode(shared_ptr<Node<T>> node);
-    int inOrderVisit(shared_ptr<Node<T>> node, int* array, int array_size);
-
+    ~AVLtree();
+    Node<T> *clearTree(Node<T> *current_root);
+    int calcHeight(Node<T> *m_node);
+    int getBalance(Node<T> *m_node);
+    Node<T> *findNode(Node<T> *root, int key);
+    Node<T> *insertNode(Node<T> *root, int key, const T &data_element);
+    Node<T> *RotateLL(Node<T> *node);
+    Node<T> *RotateRR(Node<T> *node);
+    Node<T> *RotateRL(Node<T> *node);
+    Node<T> *RotateLR(Node<T> *node);
+    Node<T> *deleteNode(Node<T> *node, int key);
+    Node<T> *AVLtree<T>::minValueNode(Node<T> *node);
+    int inOrderVisit(Node<T> *node, int *array, int array_size);
 
     int max(int a, int b)
     {
@@ -81,22 +82,46 @@ public:
     }
 };
 
-
 /**************AVLtree functions***************/
 template <class T>
-int AVLtree<T>::calcHeight(shared_ptr<Node<T>> node) {
-    if (!node) {
+AVLtree<T>::~AVLtree()
+{
+    m_root = clearTree(m_root);
+    delete m_root;
+}
+
+template <class T>
+Node<T> *AVLtree<T>::clearTree(Node<T> *current_root)
+{
+    if (current_root)
+    {
+        current_root->m_left_son = clearTree(current_root->m_left_son);
+        current_root->m_right_son = clearTree(current_root->m_right_son);
+        delete current_root;
+    }
+    return nullptr;
+}
+
+template <class T>
+int AVLtree<T>::calcHeight(Node<T> *node)
+{
+    if (!node)
+    {
         return -1;
     }
     int h = 0;
-    else {
-        if (node->m_left_son && node->m_right_son) {
+    else
+    {
+        if (node->m_left_son && node->m_right_son)
+        {
             h = 1 + max(node->m_left_son->m_height, node->m_right_son->m_height);
         }
-        else if (!node->m_left_son && node->m_right_son) {
+        else if (!node->m_left_son && node->m_right_son)
+        {
             h = 1 + node->m_right_son->m_height;
         }
-        else if (node->m_left_son && !node->m_right_son) {
+        else if (node->m_left_son && !node->m_right_son)
+        {
             h = 1 + node->m_left_son->m_height;
         }
     }
@@ -104,16 +129,17 @@ int AVLtree<T>::calcHeight(shared_ptr<Node<T>> node) {
 }
 
 template <class T>
-int AVLtree<T>::getBalance(shared_ptr<Node<T>> node) {
-    if (!node) {
+int AVLtree<T>::getBalance(Node<T> *node)
+{
+    if (!node)
+    {
         return 0;
     }
     return calcHeight(node->m_left_son) - calcHeight(node->m_right_son);
-
 }
 
 template <class T>
-shared_ptr<Node<T>> AVLtree<T>::findNode(shared_ptr<Node<T>> root, int key)
+Node<T> *AVLtree<T>::findNode(Node<T> *root, int key)
 {
     if (key <= 0)
     {
@@ -138,32 +164,36 @@ shared_ptr<Node<T>> AVLtree<T>::findNode(shared_ptr<Node<T>> root, int key)
 }
 
 template <class T>
-shared_ptr<Node<T>> AVLtree<T>::insertNode(shared_ptr<Node<T>> root, int key, shared_ptr<T> data_element)
+Node<T> *AVLtree<T>::insertNode(Node<T> *root, int key, const T &data_element)
 {
     if (root == nullptr)
     {
-        root = make_shared<Node<T>>(key, data_element); //this means we need a constructor that recives variables for each data type
-        return root;
-    }
-    else {
-        if (findNode(this->m_root, key) != nullptr) {
-            return root;
+        root = new Node<T>(T, key);
+        if (m_highest_key < key)
+        {
+            m_highest_key = key;
         }
+        if (m_lowest_key < key)
+        {
+            m_lowest_key = key;
+        }
+        return root;
     }
     if (key < root->m_key)
         root->m_left_son = insertNode(root->m_left_son, key, data_element);
     else if (key > root->m_key)
         root->m_right_son = insertNode(root->m_right_son, key, data_element);
 
-    if (key < this->m_lowest_key) {
+    if (key < this->m_lowest_key)
+    {
         this->m_lowest_key = key;
     }
-    else if (key > this->m_highest_key) {
+    else if (key > this->m_highest_key)
+    {
         this->m_highest_key = key;
     }
     root->m_height = 1 + max(calcHeight(root->m_left_son),
-        calcHeight(root->m_right_son));
-
+                             calcHeight(root->m_right_son));
 
     int balance_factor = getBalance(root);
     if (balance_factor == 2 && getBalance(node->m_left_son) == 1)
@@ -189,76 +219,72 @@ shared_ptr<Node<T>> AVLtree<T>::insertNode(shared_ptr<Node<T>> root, int key, sh
     return root;
 }
 
-
-
-template <class T>//change names var
-shared_ptr<Node<T>> AVLtree<T>::RotateLL(shared_ptr<Node<T>> node)
+template <class T> // change names var
+Node<T> *AVLtree<T>::RotateLL(Node<T> *node)
 {
     if (node == nullptr)
     {
-        return  nullptr;
+        return nullptr;
     }
-    shared_ptr<Node<T>> temp;
-    shared_ptr<Node<T>> tp;
+    Node<T> *temp;
+    Node<T> *new_root;
     temp = node;
-    tp = temp->m_left_son;
-    temp->m_left_son = tp->m_right_son;
-    tp->m_right_son = temp;
-    return tp;
+    new_root = temp->m_left_son;
+    temp->m_left_son = new_root->m_right_son;
+    new_root->m_right_son = temp;
+    new_root->m_right_son->m_height = 1 + max(calcHeight(new_root->m_right_son->m_left_son),
+                                              calcHeight(new_root->m_right_son->m_right_son));
+    new_root->m_height = 1 + max(calcHeight(new_root->m_left_son),
+                                 calcHeight(new_root->m_right_son));
+    return new_root;
 }
 
-
 template <class T>
-shared_ptr<Node<T>> AVLtree<T>::RotateRR(shared_ptr<Node<T>> node)
+Node<T> *AVLtree<T>::RotateRR(Node<T> *node)
 {
 
     if (node == nullptr)
     {
         return nullptr;
     }
-    shared_ptr<Team> temp;
-    shared_ptr<Team> tp;
+    Node<T> *temp;
+    Node<T> *new_root;
     temp = node;
-    tp = temp->m_right_team;
+    new_root = temp->m_right_son;
 
-    temp->m_right_team = tp->m_left_team;
-    tp->m_left_team = temp;
+    temp->m_right_son = new_root->m_left_son;
+    new_root->m_left_son = temp;
 
-    return tp;
+    new_root->m_left_son->m_height = 1 + max(calcHeight(new_root->m_left_son->m_left_son),
+                                             calcHeight(new_root->m_left_son->m_right_son));
+    new_root->m_height = 1 + max(calcHeight(new_root->m_left_son),
+                                 calcHeight(new_root->m_right_son));
+    return new_root;
 }
 
-
-template <class T>// need to finish rotate
-shared_ptr<Node<T>> AVLtree<T>::RotateLR(shared_ptr<Node<T>> node)
+template <class T> // need to finish rotate
+Node<T> *AVLtree<T>::RotateLR(Node<T> *node)
 {
-    shared_ptr<Node<T>> res1 = RotateRR(node->m_right_son)
-        shared_ptr<Node<T>> res2 = RotateLL(node);
-    if (res1 != nullptr && res2 != nullptr)
-    {
-        return res2;
-    }
-    else
-    {
-        return nullptr;
-    }
+    node->m_left_son = RotateRR(node->m_left_son);
+    node->m_left_son->m_height = 1 + max(calcHeight(node->m_left_son->m_left_son),
+                                         calcHeight(node->m_left_son->m_right_son));
+    Node<T> *new_root = RotateLL(node);
+    new_root->m_height = 1 + max(calcHeight(new_root->m_left_son),
+                                 calcHeight(new_root->m_right_son));
+    return new_root;
 }
-
 
 template <class T>
-shared_ptr<Node<T>> AVLtree<T>::RotateRL(shared_ptr<Node<T>> node)
+Node<T> *AVLtree<T>::RotateRL(Node<T> *node)
 {
-    AVLResults res1 = RotateLL(node->m_left_son)//fix this functio jonah
-        AVLResults res2 = RotateRR(node);
-    if (res1 != nullptr && res2 != nullptr)
-    {
-        return res2;
-    }
-    else
-    {
-        return nullptr;
-    }
+    node->m_right_son = RotateLL(node->m_right_son); // fix this functio jonah
+    node->m_right_son->m_height = 1 + max(calcHeight(node->m_right_son->m_left_son),
+                                          calcHeight(node->m_right_son->m_right_son));
+    Node<T> *new_root = RotateRR(node);
+    new_root->m_height = 1 + max(calcHeight(new_root->m_left_son),
+                                 calcHeight(new_root->m_right_son));
+    return new_root;
 }
-
 
 /*
 template<class T>
@@ -273,13 +299,13 @@ shared_ptr<Node<T>> AVLtree<T>::minValueNode()
 
 
 template<class T>
-shared_ptr<Node<T>> AVLtree<T>::deleteNode(shared_ptr<Node<T>> root, int key)//add a check for the best player 
+shared_ptr<Node<T>> AVLtree<T>::deleteNode(shared_ptr<Node<T>> root, int key)//add a check for the best player
 {
     if (root == nullptr)
     {
         return nullptr;
     }
-    if (findNode(root, key) == nullptr)//this is if we dont find the node with the key 
+    if (findNode(root, key) == nullptr)//this is if we dont find the node with the key
     {
         return nullptr;
     }
@@ -309,10 +335,10 @@ shared_ptr<Node<T>> AVLtree<T>::deleteNode(shared_ptr<Node<T>> root, int key)//a
 }
 */
 
-//infuse geekforgeeks with jonah
+// infuse geekforgeeks with jonah
 
-template<class T>
-shared_ptr<Node<T>> AVLtree<T>::minValueNode(shared_ptr<Node<T>> node)
+template <class T>
+Node<T> *AVLtree<T>::minValueNode(Node<T> *node)
 {
     shared_ptr<Node<T>> curr = node;
 
@@ -320,18 +346,77 @@ shared_ptr<Node<T>> AVLtree<T>::minValueNode(shared_ptr<Node<T>> node)
         curr = curr->m_left_son;
 
     return curr;
-
 }
 
-template<class T>
-shared_ptr<Node<T>> AVLtree<T>::deleteNode(shared_ptr<Node<T>> root, int key)//add a check for the best player 
+template <class T>
+Node<T> *AVLtree<T>::deleteNode(Node<T> *root, int key) // add a check for the best player
 {
     if (root == nullptr)
     {
         return nullptr;
     }
+    if (key < root->m_key)
+    {
+        root->m_left_son = deleteNode(root->m_left_son, key);
+    }
+    else if (key > root->m_key)
+    {
+        root->m_right_son = deleteNode(root->m_right_son, key);
+    }
+    else
+    { // this means the key is equal to the current node's key
+        if (root->m_left_son && root->m_right_son)
+        { // two children
+            // we find the next node that should be the new root - this is the node with the samllest value in the right son tree
+            Node<T> *new_root = minValueNode(root->m_right_son);
+            // we copy the data element and the key to the root, but keep the height and pointers to the next sons.
+            // this means we changed the value of the root node without actually deleting the root
+            root->m_key = new_root->m_key;
+            root->m_data_element = new_root->m_data_element;
+            // now we delete the original node that was copied to become the root, we dont need it anymore because we copied it's values
+            root->m_right_node = deleteNode(root->m_right_son, root->m_key);
+        }
+        else
+        { // one or zero children
+            Node<T> *temp = root;
+            if (temp->m_left_son == nullptr)
+            {
+                root = root->m_right_son;
+            }
+            else if (temp->m_right_son == null)
+            {
+                root = root->m_left_son
+            }
+            delete temp;
+        }
+        root->m_height = 1 + max(calcHeight(root->m_left_son),
+                                 calcHeight(root->m_right_son));
+    }
+    int balance_factor = getBalance(root);
+    if (balance_factor == 2 && getBalance(node->m_left_son) == 1)
+    {
+        // LL ROTATION
+        return RotateLL(root)
+    }
+    else if (balance_factor == -2 && getBalance(node->m_right_son) == -1)
+    {
+        // RR ROTATION
+        return RotateRR(root);
+    }
+    else if (balance_factor == -2 && getBalance(node->m_right_son) == 1)
+    {
+        // RL ROTATION
+        return RotateRL(root);
+    }
+    else if (balance_factor == 2 && getBalance(node->m_left_son) == -1)
+    {
+        // LR ROTATION
+        return RotateLR(root);
+    }
+    return root;
 
-    if (findNode(root, key) == nullptr)//this is if we dont find the node with the key 
+    /*
+    if (findNode(root, key) == nullptr)//this is if we dont find the node with the key
     {
         return nullptr;
     }
@@ -341,7 +426,7 @@ shared_ptr<Node<T>> AVLtree<T>::deleteNode(shared_ptr<Node<T>> root, int key)//a
         root->m_left_son = deleteNode(root->m_left_son, key);
         if (getBalance(root) == -2)
         {
-            if (getBalance(root->m_right_son) <= 0)//check 
+            if (getBalance(root->m_right_son) <= 0)//check
             {
                 root = RotateRR(root);
             }
@@ -426,26 +511,24 @@ shared_ptr<Node<T>> AVLtree<T>::deleteNode(shared_ptr<Node<T>> root, int key)//a
     }
 
     return root;
+    */
 }
 
-
-
-
 template <class T>
-int AVLtree<T>::inOrderVisit(shared_ptr<Node<T>> node, int* array, int start_index) {
-    if (!node) {
+int AVLtree<T>::inOrderVisit(Node<T> *node, int *array, int start_index)
+{
+    if (!node)
+    {
         return start_index;
     }
-    else {
+    else
+    {
         int index_after_left_visit = inOrderVisit(node->m_left_son, array, start_index);
         array[index_after_left_visit] = node->m_key;
         int index_after_right_visit = inOrderVisit(node->m_right_son, array, index_after_left_visit + 1);
         return index_after_right_visit;
     }
 }
-
-
-
 
 /**************end of AVLtree functions***************/
 

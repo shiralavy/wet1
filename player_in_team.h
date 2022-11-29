@@ -18,6 +18,7 @@ class player_in_team {
     int m_cards;
     bool m_goalkeeper;
     shared_ptr<Node<player>> m_player;
+    shared_ptr<Node<Team>> m_my_team;
 
    /***********************************************************
          * player_in_team: constructor for player_in_team
@@ -29,10 +30,11 @@ class player_in_team {
          * @param m_cards number of cards this played has
          * @param m_goalkeeper boolean value if this player can be a goalkeeper
          * @param m_player a pointer to the player this node represents 
+         * @param m_my_team a pointer to the team this player belongs to
     ***********************************************************/
 
-    player_in_team(int player_id, int team_id, int games_played, int goals, int cards, bool goalkeeper, shared_ptr<Node<player>> player) : 
-    m_player_id(player_id), m_team_id(team_id), m_games_played(games_played), m_goals(goals), m_cards(cards), m_goalkeeper(goalkeeper), m_player(player)
+    player_in_team(int player_id, int team_id, int games_played, int goals, int cards, bool goalkeeper, shared_ptr<Node<player>> player = nullptr, shared_ptr<Node<Team>> team = nullptr) : 
+    m_player_id(player_id), m_team_id(team_id), m_games_played(games_played), m_goals(goals), m_cards(cards), m_goalkeeper(goalkeeper), m_player(player), m_my_team(team)
     {};
 
     /***********************************************************
