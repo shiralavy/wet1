@@ -19,7 +19,8 @@ class player {
     bool m_goalkeeper;
     //shared_ptr<Node<player_in_team>> player_in_team;
     //shared_ptr<Node<player_in_scoreboard>> player_in_scoreboard;
-    Node<player_in_team>* m_player_in_team;
+    Node<player_in_team>* m_player_in_team_by_score;
+    Node<player_in_team>* m_player_in_team_by_id;
     Node<player_in_scoreboard>* m_player_in_scoreboard;
 
 
@@ -37,7 +38,7 @@ class player {
 
     player(int player_id, int team_id, int games_played, int goals, int cards, bool goalkeeper) : 
     m_player_id(player_id), m_team_id(team_id), m_games_played(games_played), m_goals(goals), m_cards(cards), 
-    m_goalkeeper(goalkeeper), m_player_in_team(nullptr), m_player_in_scoreboard(nullptr)
+    m_goalkeeper(goalkeeper), m_player_in_team_by_score(nullptr), m_player_in_team_by_id(nullptr), m_player_in_scoreboard(nullptr)
     {};
 
     /***********************************************************
@@ -45,7 +46,8 @@ class player {
     ***********************************************************/
 
     ~player() {
-        delete m_player_in_team;
+        delete m_player_in_team_by_score;
+        delete m_player_in_team_by_id;
         delete m_player_in_scoreboard;
     };
 

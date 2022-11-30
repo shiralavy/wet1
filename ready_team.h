@@ -27,6 +27,7 @@ class ready_team {
     ***********************************************************/
 
     ~ready_team(){
+        m_team = nullptr;
         delete m_team;
     };
 

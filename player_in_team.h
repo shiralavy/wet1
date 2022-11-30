@@ -41,7 +41,12 @@ class player_in_team {
     * ~player_in_team: destructor for player_in_team
     ***********************************************************/
 
-    ~player_in_team() = default;
+    ~player_in_team(){
+        m_player = nullptr;
+        m_my_team = nullptr;
+        delete m_player;
+        delete m_my_team;
+    }
 
 };
 
