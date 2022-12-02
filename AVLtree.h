@@ -80,8 +80,9 @@ public:
     Node<T> *RotateLR(Node<T> *node);
     Node<T> *deleteNode(Node<T> *node, int key1, int key2, int key3);
     Node<T> *AVLtree<T>::minValueNode(Node<T> *node);
+    Node<T> *AVLtree<T>::maxValueNode(Node<T> *node);
     int inOrderVisit(Node<T> *node, int *array, int start_index);
-    int closestNode(Node<T> *node);
+    Node<T>* closestNode(Node<T> *node);
 
     int max(int a, int b)
     {
@@ -413,6 +414,17 @@ Node<T> *AVLtree<T>::minValueNode(Node<T> *node)
 }
 
 template <class T>
+Node<T> *AVLtree<T>::maxValueNode(Node<T> *node)
+{
+    Node<T> *curr = node;
+
+    while (curr->m_right_son != nullptr)
+        curr = curr->m_right_son;
+
+    return curr;
+}
+
+template <class T>
 Node<T> *AVLtree<T>::deleteNode(Node<T> *root, int key1, int key2, int key3) // add a check for the best player
 {
     if (root == nullptr)
@@ -561,7 +573,7 @@ int AVLtree<T>::inOrderVisit(Node<T> *node, int *array, int start_index)
 }
 
 template <class T>
-int closestNode(Node<T> *node)  //NEED TO UPDATE THIS FUNCTION SHIRA - closest could be minvalue if i have a right child, or maxvalue if i have a left child,
+Node<T> * closestNode(Node<T> *node)  //NEED TO UPDATE THIS FUNCTION SHIRA - closest could be minvalue if i have a right child, or maxvalue if i have a left child,
 {
     if (!node)
     {
