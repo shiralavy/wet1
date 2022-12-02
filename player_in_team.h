@@ -13,10 +13,10 @@ class player_in_team {
     public:
     int m_player_id;
     int m_team_id;
-    int m_games_played;
-    int m_goals;
-    int m_cards;
-    bool m_goalkeeper;
+    //int m_games_played;
+    //int m_goals;
+    //int m_cards;
+    //bool m_goalkeeper;
     Node<player>* m_player;
     Node<Team>* m_my_team;
 
@@ -33,8 +33,8 @@ class player_in_team {
          * @param m_my_team a pointer to the team this player belongs to
     ***********************************************************/
 
-    player_in_team(int player_id, int team_id, int games_played, int goals, int cards, bool goalkeeper, Node<player>* player = nullptr, Node<Team>* team = nullptr) : 
-    m_player_id(player_id), m_team_id(team_id), m_games_played(games_played), m_goals(goals), m_cards(cards), m_goalkeeper(goalkeeper), m_player(player), m_my_team(team)
+    player_in_team(int player_id, int team_id, Node<player>* player = nullptr, Node<Team>* team = nullptr) : 
+    m_player_id(player_id), m_team_id(team_id), m_player(player), m_my_team(team)
     {};
 
     /***********************************************************

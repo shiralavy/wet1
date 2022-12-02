@@ -14,6 +14,7 @@ class Team {
     int m_num_players;
     int m_num_goalkeeprs;
     int m_winning_num;
+    int m_games_played_by_team;
     //bool m_ready_to_play; //boolean value if this team is ready to play (has 11 players and one goalkeeper)
     AVLtree<player_in_team>* m_tree_players_in_team_by_score; 
     AVLtree<player_in_team>* m_tree_players_in_team_by_id;
@@ -28,7 +29,7 @@ class Team {
          * @param m_best_player
     ***********************************************************/
 
-    Team(int team_id, int points, int num_players = 0, int num_goalkeepers = 0) : m_team_id(team_id), m_points(points), m_num_players(num_players), m_num_goalkeeprs(num_goalkeepers), m_winning_num(points){
+    Team(int team_id, int points, int num_players = 0, int num_goalkeepers = 0, int games_played_by_team = 0) : m_team_id(team_id), m_points(points), m_num_players(num_players), m_num_goalkeeprs(num_goalkeepers), m_winning_num(points), m_games_played_by_team(games_played_by_team){
         m_tree_players_in_team_by_score = new AVLtree<player_in_team>();
         m_tree_players_in_team_by_id = new AVLtree<player_in_team>();
 

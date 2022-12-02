@@ -30,6 +30,11 @@ private:
     AVLtree<Team>* m_tree_teams_by_id; //AVL tree containing all of the teams in the tournament sorted by id
     AVLtree<ready_team>* m_tree_ready_teams; //AVL tree containing all of the teams in the tournament that are ready to play (have 11 players, one of them is a goalie) sorted by id
 
+	StatusType add_player(int playerId, Node<Team>* team, int gamesPlayed,
+	                      int goals, int cards, bool goalKeeper);
+	StatusType remove_player_except_from_tree_ready_teams(int playerId);
+
+
 public:
 	// <DO-NOT-MODIFY> {
 	

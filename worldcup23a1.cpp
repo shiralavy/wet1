@@ -1,6 +1,125 @@
 #include "worldcup23a1.h"
 #define ONE 1
 
+/****************************private functions**********************************/
+
+// this function is similar to the regular add_player, but in this case the time complexity is logn instead of
+// logn+logk because we dont need to find the team in  the tree of teams and we dont insert the team to the ready_teams tree if in now bacame ready
+StatusType world_cup_t::add_player(int playerId, Node<Team> *team, int gamesPlayed,
+								   int goals, int cards, bool goalKeeper)
+{
+
+	if (playerId <= 0 || !team || gamesPlayed < 0 || goals < 0 ||
+		(gamesPlayed == 0 && (goals > 0 || cards > 0)))
+	{
+		return StatusType::INVALID_INPUT;
+	}
+	if (this->m_tree_players_by_id->findNode(this->m_tree_players_by_id->m_root, playerId, 0, 0) != nullptr)
+	{
+		// there is already a player with this ID in the tournament
+		return StatusType::FAILURE;
+	}
+	else
+	{ // the player does not exist, the team does exist
+		try
+		{
+			// insert player into AVL TREE with players sorted by id
+			player newPlayer(playerId, team->m_element.m_team_id, gamesPlayed, goals, cards, goalKeeper);
+			Node<player> *root = this->m_tree_players_by_id->m_root;
+			this->m_tree_players_by_id->insertNode(root, playerId, 0, 0, newPlayer);
+
+			// insert player into AVL TREE of players inside the appropriate team sorted by score
+			Node<player> *insertedPlayer = this->m_tree_players_by_id->findNode(this->m_tree_players_by_id->m_root, playerId, 0, 0);
+			player_in_team newPlayerInTeamByScore(playerId, team->m_element.m_team_id, insertedPlayer, team);
+			team->m_element.m_tree_players_in_team_by_score->insertNode(team->m_element.m_tree_players_in_team_by_score->m_root, goals, cards, playerId, newPlayerInTeamByScore);
+			team->m_element.m_winning_num = team->m_element.m_winning_num + goals - cards;
+
+			// insert player into AVL TREE of players inside the appropriate team sorted by id
+			player_in_team newPlayerInTeamByID(playerId, team->m_element.m_team_id, insertedPlayer, team);
+			team->m_element.m_tree_players_in_team_by_score->insertNode(team->m_element.m_tree_players_in_team_by_score->m_root, playerId, 0, 0, newPlayerInTeamByID);
+
+			// update the pointers of player in big AVL TREE to its locations in the team
+			insertedPlayer->m_element.m_player_in_team_by_score = team->m_element.m_tree_players_in_team_by_score->findNode(team->m_element.m_tree_players_in_team_by_score->m_root, goals, cards, playerId);
+			insertedPlayer->m_element.m_player_in_team_by_id = team->m_element.m_tree_players_in_team_by_id->findNode(team->m_element.m_tree_players_in_team_by_score->m_root, playerId, 0, 0);
+
+			// update the team's winning number because this player is added
+			int num = goals - cards;
+			team->m_element.m_winning_num += num;
+
+			// insert player into AVL TREE containing players by score
+			player_in_scoreboard newPlayerByScore(playerId);
+			this->m_tree_players_by_score->insertNode(this->m_tree_players_by_score->m_root, goals, cards, playerId, newPlayerByScore);
+			Node<player_in_scoreboard> *insertedPlayerByScore = this->m_tree_players_by_score->findNode(this->m_tree_players_by_score->m_root, goals, cards, playerId);
+			insertedPlayer->m_element.m_player_in_scoreboard = insertedPlayerByScore;
+
+			// update next and prev players by score
+			insertedPlayerByScore->m_element.m_next_player_by_score = this->m_tree_players_by_score->closestHeigherNode(insertedPlayerByScore);
+			insertedPlayerByScore->m_element.m_prev_player_by_score = this->m_tree_players_by_score->closestLowerNode(insertedPlayerByScore);
+
+			// update the next and prev for the players that were affected
+			insertedPlayerByScore->m_element.m_next_player_by_score->m_element.m_prev_player_by_score = insertedPlayerByScore;
+			insertedPlayerByScore->m_element.m_prev_player_by_score->m_element.m_next_player_by_score = insertedPlayerByScore;
+		}
+		catch (std::bad_alloc &)
+		{
+			return StatusType::ALLOCATION_ERROR;
+		}
+	}
+	this->m_best_player = this->m_tree_players_by_score->m_heighest_key3;
+	this->m_num_players++;
+	return StatusType::SUCCESS;
+}
+
+// this function is similar to the regular remove player, except it doesnt remove the team from the tree of ready teams in case the team has now become not ready
+StatusType world_cup_t::remove_player_except_from_tree_ready_teams(int playerId)
+{
+	if (playerId <= 0)
+	{
+		return StatusType::INVALID_INPUT;
+	}
+	Node<player> *playerToRemove = this->m_tree_players_by_id->findNode(this->m_tree_players_by_id->m_root, playerId, 0, 0);
+
+	if (playerToRemove == nullptr)
+	{
+		return StatusType::FAILURE;
+	}
+
+	// delete from tree of all players by score
+	// first we update the next and prev values of the players that pointed to this player
+	Node<player_in_scoreboard> *playerToRemoveByScore = playerToRemove->m_element.m_player_in_scoreboard;
+	Node<player_in_scoreboard> *nextPlayer = playerToRemoveByScore->m_element.m_next_player_by_score;
+	Node<player_in_scoreboard> *prevPlayer = playerToRemoveByScore->m_element.m_next_player_by_score;
+	prevPlayer->m_element.m_next_player_by_score = nextPlayer;
+	nextPlayer->m_element.m_prev_player_by_score = prevPlayer;
+
+	// now we delete from the tree
+	this->m_tree_players_by_score->deleteNode(this->m_tree_players_by_score->m_root, playerToRemove->m_element.m_goals,
+											  playerToRemove->m_element.m_cards, playerToRemove->m_element.m_player_id);
+
+	// if because of removing this player a team that was ready has now become NOT ready, we remove this team:
+	Node<player_in_team> *tempPlayerInTeamByScore = playerToRemove->m_element.m_player_in_team_by_score;
+	Node<Team> *tempTeamContainingPlayer = tempPlayerInTeamByScore->m_element.m_my_team;
+
+	// update the team's winning number because this player is removed
+	int num = (playerToRemove->m_element.m_goals) - (playerToRemove->m_element.m_cards);
+	tempTeamContainingPlayer->m_element.m_winning_num -= num;
+
+	// delete from tree of players by score inside Team
+	tempTeamContainingPlayer->m_element.m_tree_players_in_team_by_score->deleteNode(tempTeamContainingPlayer->m_element.m_tree_players_in_team_by_score->m_root, playerToRemove->m_element.m_goals, playerToRemove->m_element.m_cards, playerToRemove->m_element.m_player_id);
+
+	// delete from tree of players by id inside team
+	tempTeamContainingPlayer->m_element.m_tree_players_in_team_by_id->deleteNode(tempTeamContainingPlayer->m_element.m_tree_players_in_team_by_id->m_root, playerToRemove->m_element.m_player_id, 0, 0);
+
+	// delete from tree of all players by playerId
+	this->m_tree_players_by_id->deleteNode(this->m_tree_players_by_id->m_root, playerId, 0, 0);
+
+	this->m_best_player = this->m_tree_players_by_score->m_heighest_key3;
+	this->m_num_players--;
+	return StatusType::SUCCESS;
+}
+
+/***********************end of private functions**********************************************/
+
 world_cup_t::world_cup_t() : m_best_player(-1), m_num_players(0)
 {
 	try
@@ -76,7 +195,7 @@ StatusType world_cup_t::add_team(int teamId, int points)
 		}
 	}
 
-	return StatusType::SUCCESS; 
+	return StatusType::SUCCESS;
 }
 
 StatusType world_cup_t::remove_team(int teamId)
@@ -106,8 +225,10 @@ StatusType world_cup_t::add_player(int playerId, int teamId, int gamesPlayed,
 	{
 		return StatusType::INVALID_INPUT;
 	}
+
+	Node<Team> *teamForNewPlayer = this->m_tree_teams_by_id->findNode(this->m_tree_teams_by_id->m_root, teamId, 0, 0);
 	if (this->m_tree_players_by_id->findNode(this->m_tree_players_by_id->m_root, playerId, 0, 0) != nullptr ||
-		this->m_tree_teams_by_id->findNode(this->m_tree_teams_by_id->m_root, teamId, 0, 0) == nullptr)
+		teamForNewPlayer == nullptr)
 	{
 		// there is already a player with this ID in the tournament or there is no team in the tournament with this ID
 		return StatusType::FAILURE;
@@ -117,19 +238,18 @@ StatusType world_cup_t::add_player(int playerId, int teamId, int gamesPlayed,
 		try
 		{
 			// insert player into AVL TREE with players sorted by id
-			player newPlayer(playerId, teamId, gamesPlayed, goals, cards, goalKeeper);
+			player newPlayer(playerId, teamId, gamesPlayed - teamForNewPlayer->m_element.m_games_played_by_team, goals, cards, goalKeeper);
 			Node<player> *root = this->m_tree_players_by_id->m_root;
 			this->m_tree_players_by_id->insertNode(root, playerId, 0, 0, newPlayer);
 
 			// insert player into AVL TREE of players inside the appropriate team sorted by score
 			Node<player> *insertedPlayer = this->m_tree_players_by_id->findNode(this->m_tree_players_by_id->m_root, playerId, 0, 0);
-			Node<Team> *teamForNewPlayer = this->m_tree_teams_by_id->findNode(this->m_tree_teams_by_id->m_root, teamId, 0, 0);
-			player_in_team newPlayerInTeamByScore(playerId, teamId, gamesPlayed, goals, cards, goalKeeper, insertedPlayer, teamForNewPlayer);
+			player_in_team newPlayerInTeamByScore(playerId, teamId, insertedPlayer, teamForNewPlayer);
 			teamForNewPlayer->m_element.m_tree_players_in_team_by_score->insertNode(teamForNewPlayer->m_element.m_tree_players_in_team_by_score->m_root, goals, cards, playerId, newPlayerInTeamByScore);
 			teamForNewPlayer->m_element.m_winning_num = teamForNewPlayer->m_element.m_winning_num + goals - cards;
 
 			// insert player into AVL TREE of players inside the appropriate team sorted by id
-			player_in_team newPlayerInTeamByID(playerId, teamId, gamesPlayed, goals, cards, goalKeeper, insertedPlayer, teamForNewPlayer);
+			player_in_team newPlayerInTeamByID(playerId, teamId, insertedPlayer, teamForNewPlayer);
 			teamForNewPlayer->m_element.m_tree_players_in_team_by_score->insertNode(teamForNewPlayer->m_element.m_tree_players_in_team_by_score->m_root, playerId, 0, 0, newPlayerInTeamByID);
 
 			// update the pointers of player in big AVL TREE to its locations in the team
@@ -156,17 +276,16 @@ StatusType world_cup_t::add_player(int playerId, int teamId, int gamesPlayed,
 			// insert player into AVL TREE containing players by score
 			player_in_scoreboard newPlayerByScore(playerId);
 			this->m_tree_players_by_score->insertNode(this->m_tree_players_by_score->m_root, goals, cards, playerId, newPlayerByScore);
-			Node<player_in_scoreboard>* insertedPlayerByScore = this->m_tree_players_by_score->findNode(this->m_tree_players_by_score->m_root, goals, cards, playerId);
+			Node<player_in_scoreboard> *insertedPlayerByScore = this->m_tree_players_by_score->findNode(this->m_tree_players_by_score->m_root, goals, cards, playerId);
 			insertedPlayer->m_element.m_player_in_scoreboard = insertedPlayerByScore;
 
-			//update next and prev players by score
+			// update next and prev players by score
 			insertedPlayerByScore->m_element.m_next_player_by_score = this->m_tree_players_by_score->closestHeigherNode(insertedPlayerByScore);
 			insertedPlayerByScore->m_element.m_prev_player_by_score = this->m_tree_players_by_score->closestLowerNode(insertedPlayerByScore);
-			
-			//update the next and prev for the players that were affected
+
+			// update the next and prev for the players that were affected
 			insertedPlayerByScore->m_element.m_next_player_by_score->m_element.m_prev_player_by_score = insertedPlayerByScore;
 			insertedPlayerByScore->m_element.m_prev_player_by_score->m_element.m_next_player_by_score = insertedPlayerByScore;
-
 		}
 		catch (std::bad_alloc &)
 		{
@@ -192,19 +311,18 @@ StatusType world_cup_t::remove_player(int playerId)
 	}
 
 	// delete from tree of all players by score
-	//first we update the next and prev values of the players that pointed to this player
-	Node<player_in_scoreboard>* playerToRemoveByScore = playerToRemove->m_element.m_player_in_scoreboard;
-	Node<player_in_scoreboard>* nextPlayer = playerToRemoveByScore->m_element.m_next_player_by_score;
-	Node<player_in_scoreboard>* prevPlayer = playerToRemoveByScore->m_element.m_next_player_by_score;
+	// first we update the next and prev values of the players that pointed to this player
+	Node<player_in_scoreboard> *playerToRemoveByScore = playerToRemove->m_element.m_player_in_scoreboard;
+	Node<player_in_scoreboard> *nextPlayer = playerToRemoveByScore->m_element.m_next_player_by_score;
+	Node<player_in_scoreboard> *prevPlayer = playerToRemoveByScore->m_element.m_next_player_by_score;
 	prevPlayer->m_element.m_next_player_by_score = nextPlayer;
 	nextPlayer->m_element.m_prev_player_by_score = prevPlayer;
 
-	//now we delete from the tree
+	// now we delete from the tree
 	this->m_tree_players_by_score->deleteNode(this->m_tree_players_by_score->m_root, playerToRemove->m_element.m_goals,
 											  playerToRemove->m_element.m_cards, playerToRemove->m_element.m_player_id);
 
-
-	//if because of removing this player a team that was ready has now become NOT ready, we remove this team:
+	// if because of removing this player a team that was ready has now become NOT ready, we remove this team:
 	Node<player_in_team> *tempPlayerInTeamByScore = playerToRemove->m_element.m_player_in_team_by_score;
 	Node<Team> *tempTeamContainingPlayer = tempPlayerInTeamByScore->m_element.m_my_team;
 	if (tempTeamContainingPlayer->m_element.check_team_ready())
@@ -213,7 +331,7 @@ StatusType world_cup_t::remove_player(int playerId)
 		// update num_players in the team and num goalkeepers
 		tempTeamContainingPlayer->m_element.m_num_players--;
 		// checks if the player to remove is a goalkeeper
-		if (tempPlayerInTeamByScore->m_element.m_goalkeeper)
+		if (tempPlayerInTeamByScore->m_element.m_player->m_element.m_goalkeeper)
 		{
 			tempTeamContainingPlayer->m_element.m_num_goalkeeprs--;
 		}
@@ -224,16 +342,15 @@ StatusType world_cup_t::remove_player(int playerId)
 		}
 	}
 	// update the team's winning number because this player is removed
-	int num = (playerToRemove->m_element.m_goals)-(playerToRemove->m_element.m_cards);
+	int num = (playerToRemove->m_element.m_goals) - (playerToRemove->m_element.m_cards);
 	tempTeamContainingPlayer->m_element.m_winning_num -= num;
 
-
-	//delete from tree of players by score inside Team
+	// delete from tree of players by score inside Team
 	tempTeamContainingPlayer->m_element.m_tree_players_in_team_by_score->deleteNode(tempTeamContainingPlayer->m_element.m_tree_players_in_team_by_score->m_root, playerToRemove->m_element.m_goals, playerToRemove->m_element.m_cards, playerToRemove->m_element.m_player_id);
 
-	//delete from tree of players by id inside team
-	tempTeamContainingPlayer->m_element.m_tree_players_in_team_by_id->deleteNode(tempTeamContainingPlayer->m_element.m_tree_players_in_team_by_id->m_root, playerToRemove->m_element.m_player_id, 0,0);
-	
+	// delete from tree of players by id inside team
+	tempTeamContainingPlayer->m_element.m_tree_players_in_team_by_id->deleteNode(tempTeamContainingPlayer->m_element.m_tree_players_in_team_by_id->m_root, playerToRemove->m_element.m_player_id, 0, 0);
+
 	// delete from tree of all players by playerId
 	this->m_tree_players_by_id->deleteNode(this->m_tree_players_by_id->m_root, playerId, 0, 0);
 
@@ -252,24 +369,31 @@ StatusType world_cup_t::update_player_stats(int playerId, int gamesPlayed,
 
 	Node<player> *playerToUpdate = this->m_tree_players_by_id->findNode(this->m_tree_players_by_id->m_root, playerId, 0, 0);
 
-	// player does not exists
 	if (!playerToUpdate)
 	{
+		// player does not exists
 		return StatusType::FAILURE;
 	}
-	playerToUpdate->m_element.m_games_played += gamesPlayed;
-	playerToUpdate->m_element.m_goals += scoredGoals;
-	playerToUpdate->m_element.m_cards += cardsReceived;
-	
+	int prevCards = playerToUpdate->m_element.m_cards;
+	int prevGoals = playerToUpdate->m_element.m_goals;
+	int prevGamesPlayed = playerToUpdate->m_element.m_games_played;
+	int prevTeamId = playerToUpdate->m_element.m_team_id;
+	bool prevGoalkeeper = playerToUpdate->m_element.m_goalkeeper;
+	Node<Team> *prevTeam = playerToUpdate->m_element.m_player_in_team_by_id->m_element.m_my_team;
 
-	//update the next and prev values of all the payers affected
-	Node<player_in_scoreboard>* updatedPlayer = playerToUpdate->m_element.m_player_in_scoreboard;
-	Node<player_in_scoreboard>* nextPlayer = updatedPlayer->m_element.m_next_player_by_score;
-	Node<player_in_scoreboard>* prevPlayer = updatedPlayer->m_element.m_next_player_by_score;
+	// remove the player we want to update from the system using remove player function that has a time complexity of logn
+	StatusType res1 = remove_player_except_from_tree_ready_teams(playerId);
+	if (res1 != StatusType::SUCCESS)
+	{
+		return res1;
+	}
 
-	prevPlayer->m_element.m_next_player_by_score = this->m_tree_players_by_score->closestHeigherNode(prevPlayer->m_element.m_next_player_by_score);
-	nextPlayer->m_element.m_prev_player_by_score = this->m_tree_players_by_score->closestLowerNode(prevPlayer->m_element.m_prev_player_by_score);
-
+	// add the payer again with updated stats using the add player function that has a time complexity of logn
+	StatusType res2 = add_player(playerId, prevTeam, prevGamesPlayed + gamesPlayed, prevGoals + scoredGoals, prevCards + cardsReceived, prevGoalkeeper);
+	if (res2 != StatusType::SUCCESS)
+	{
+		return res2;
+	}
 	return StatusType::SUCCESS;
 }
 
@@ -294,14 +418,16 @@ StatusType world_cup_t::play_match(int teamId1, int teamId2)
 		else if (powerNum1 > powerNum2)
 		{
 			team1->m_element.m_points += 3;
-			return StatusType::SUCCESS;
 		}
 		else
 		{
 			team2->m_element.m_points += 3;
-			return StatusType::SUCCESS;
 		}
+		team1->m_element.m_games_played_by_team++;
+		team2->m_element.m_games_played_by_team++;
+		return StatusType::SUCCESS;
 	}
+
 	return StatusType::FAILURE;
 }
 
@@ -317,8 +443,8 @@ output_t<int> world_cup_t::get_num_played_games(int playerId)
 	{
 		return StatusType::FAILURE;
 	}
-
-	return playerToBringGames->m_element.m_games_played;
+	int numGamesPlayedWithTeam = playerToBringGames->m_element.m_player_in_team_by_id->m_element.m_my_team->m_element.m_games_played_by_team;
+	return playerToBringGames->m_element.m_games_played + numGamesPlayedWithTeam;
 }
 
 output_t<int> world_cup_t::get_team_points(int teamId)
@@ -361,14 +487,12 @@ StatusType world_cup_t::unite_teams(int teamId1, int teamId2, int newTeamId)
 			return StatusType::FAILURE;
 		}
 	}
-	
-	//the newTeam is not team 1 or 2
-	if(newTeamId!=teamId1&&newTeamId!=teamId2)
+
+	// the newTeam is not team 1 or 2
+	if (newTeamId != teamId1 && newTeamId != teamId2)
 	{
 		this->add_team(newTeamId, team1->m_element.m_points + team2->m_element.m_points);
-		
 	}
-	
 
 	for (int i = 0; i < team1->m_element.m_num_players; i++)
 	{
@@ -469,8 +593,15 @@ output_t<int> world_cup_t::get_closest_player(int playerId, int teamId)
 		return StatusType::INVALID_INPUT;
 	}
 	Node<Team> *currentTeam = this->m_tree_teams_by_id->findNode(this->m_tree_teams_by_id->m_root, teamId, 0, 0);
-	Node<player_in_team> *playerInTeam = currentTeam->m_element.m_tree_players_in_team_by_score->findNode(currentTeam->m_element.m_tree_players_in_team_by_score->m_root, , , playerId);
-	return 1006;
+	Node<player_in_team> *playerInTeamById = currentTeam->m_element.m_tree_players_in_team_by_id->findNode(currentTeam->m_element.m_tree_players_in_team_by_id->m_root,playerId, 0,0);
+	int goals = playerInTeamById->m_element.m_player->m_element.m_goals;
+	int cards = playerInTeamById->m_element.m_player->m_element.m_cards;
+	Node<player_in_team> *playerInTeamByScore = currentTeam->m_element.m_tree_players_in_team_by_score->findNode(currentTeam->m_element.m_tree_players_in_team_by_score->m_root, goals, cards,playerId);
+
+	Node<player_in_scoreboard> * playerInScoreBoard = playerInTeamById->m_element.m_player->m_element.m_player_in_scoreboard;
+	Node<player_in_scoreboard> * closest = this->m_tree_players_by_score->closerBetweenTwoOptions(playerInScoreBoard, playerInScoreBoard->m_element.m_next_player_by_score, playerInScoreBoard->m_element.m_prev_player_by_score);
+
+	return closest->m_key3;
 }
 
 output_t<int> world_cup_t::knockout_winner(int minTeamId, int maxTeamId)
@@ -480,7 +611,7 @@ output_t<int> world_cup_t::knockout_winner(int minTeamId, int maxTeamId)
 		return StatusType::INVALID_INPUT;
 	}
 	Node<ready_team> *currTeam = this->m_tree_ready_teams->m_root;
-	
+
 	while (currTeam)
 	{
 		// good teams

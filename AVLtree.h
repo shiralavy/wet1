@@ -84,7 +84,7 @@ public:
     int inOrderVisit(Node<T> *node, int *array, int start_index);
     Node<T> *closestHeigherNode(Node<T> *node);
     Node<T> *closestLowerNode(Node<T> *node);
-    //Node<T> *closerBetweenTwoOptions(Node<T> *node, Node<T> *option1, Node<T> *option2);
+    Node<T> *closerBetweenTwoOptions(Node<T> *node, Node<T> *option1, Node<T> *option2);
     int inOrderVisitUnite(Node<T> *node, Node<T> **array, int start_index);
     Node<T>*merge(Node<T> **array1,Node<T> **array2,Node<T>** mergedArray, int size1,int size2);
 
@@ -616,7 +616,7 @@ Node<T> *AVLtree<T>::closestLowerNode(Node<T> *node)
         // this node doesnt have a parent or a left son - there is no lower value node in the tree
         return nullptr;
     }
-    if (node->m_parent && node->m_left_son == null){
+    if (node->m_parent && node->m_left_son == nullptr){
         //there is a parent and no left son
         if (node->m_key1 == node->m_parent->m_right_son->m_key1 &&
             node->m_key2 == node->m_parent->m_right_son->m_key2 &&
@@ -632,7 +632,7 @@ Node<T> *AVLtree<T>::closestLowerNode(Node<T> *node)
     }
 }
 
-/*
+
 template <class T>
 Node<T> *AVLtree<T>::closerBetweenTwoOptions(Node<T> *node, Node<T> *option1, Node<T> *option2)
 {
@@ -684,7 +684,7 @@ Node<T> *AVLtree<T>::closerBetweenTwoOptions(Node<T> *node, Node<T> *option1, No
         }
     }
 }
-*/
+
 
 
 
