@@ -4,6 +4,7 @@
         "compare": "cpp",
         "memory": "cpp",
         "type_traits": "cpp",
-        "iostream": "cpp"
+        "iostream": "cpp",
+        "random": "cpp"
     }
 }

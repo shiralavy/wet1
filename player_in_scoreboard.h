@@ -18,8 +18,8 @@ class player_in_scoreboard {
     //int m_cards;
     //bool m_goalkeeper;
     Node<player>* m_player;
-    //Node<player>* m_prev_player_by_score; //inside linked list sorted by player score
-    //Node<player>* m_next_player_by_score; //inside linked list sorted by player score
+    Node<player_in_scoreboard>* m_prev_player_by_score; //inside linked list sorted by player score
+    Node<player_in_scoreboard>* m_next_player_by_score; //inside linked list sorted by player score
 
    /***********************************************************
         * player_in_scoreboard: constructor for player_in_scoreboard
@@ -49,8 +49,12 @@ class player_in_scoreboard {
     ***********************************************************/
 
     ~player_in_scoreboard(){
+        m_prev_player_by_score = nullptr;
+        m_next_player_by_score = nullptr;
         m_player = nullptr;
         delete m_player;
+        delete m_prev_player_by_score;
+        delete m_next_player_by_score;
     }
 };
 

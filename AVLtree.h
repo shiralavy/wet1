@@ -82,7 +82,11 @@ public:
     Node<T> *AVLtree<T>::minValueNode(Node<T> *node);
     Node<T> *AVLtree<T>::maxValueNode(Node<T> *node);
     int inOrderVisit(Node<T> *node, int *array, int start_index);
-    Node<T>* closestNode(Node<T> *node);
+    Node<T> *closestHeigherNode(Node<T> *node);
+    Node<T> *closestLowerNode(Node<T> *node);
+    //Node<T> *closerBetweenTwoOptions(Node<T> *node, Node<T> *option1, Node<T> *option2);
+    int inOrderVisitUnite(Node<T> *node, Node<T> **array, int start_index);
+    Node<T>*merge(Node<T> **array1,Node<T> **array2,Node<T>** mergedArray, int size1,int size2);
 
     int max(int a, int b)
     {
@@ -561,11 +565,11 @@ int AVLtree<T>::inOrderVisit(Node<T> *node, int *array, int start_index)
         int index_after_left_visit = inOrderVisit(node->m_left_son, array, start_index);
         if (node->m_key3 != 0)
         {
-            [index_after_left_visit] = node->m_key3;
+            array[index_after_left_visit] = node->m_key3;
         }
         else
         {
-            [index_after_left_visit] = node->m_key1;
+            array[index_after_left_visit] = node->m_key1;
         }
         int index_after_right_visit = inOrderVisit(node->m_right_son, array, index_after_left_visit + 1);
         return index_after_right_visit;
@@ -573,100 +577,392 @@ int AVLtree<T>::inOrderVisit(Node<T> *node, int *array, int start_index)
 }
 
 template <class T>
-Node<T> * closestNode(Node<T> *node)  //NEED TO UPDATE THIS FUNCTION SHIRA - closest could be minvalue if i have a right child, or maxvalue if i have a left child,
+Node<T> *AVLtree<T>::closestHeigherNode(Node<T> *node)
 {
     if (!node)
     {
-        return -1;
+        return nullptr;
     }
-    if (!node->m_left_son && !node->m_right_son){
-        
-        if (!node->m_parent)
+    if (!node->m_parent && !node->m_right_son)
+    {
+        // this node doesnt have a parent or a right son - there is no heigher value node in the tree
+        return nullptr;
+    }
+    if (node->m_parent && node->m_right_son == null){
+        //there is a parent and no right son
+        if (node->m_key1 == node->m_parent->m_left_son->m_key1 &&
+            node->m_key2 == node->m_parent->m_left_son->m_key2 &&
+            node->m_key3 == node->m_parent->m_left_son->m_key3)
         {
-            // this is the only node in the tree
-            return -1;
+            // this node is the left son of the parent, so the parent is bigger
+           return node->m_parent;    
         }
-        // there is only a parent
-        return node->m_parent->m_key3;
     }
-    if (node->m_left_son && node->m_right_son)
-    {
-        //there are two children - one of them is the closest
-        int key1_option1 = node->m_left_son->m_key1;
-        int key2_option1 = node->m_left_son->m_key2;
-        int key3_option1 = node->m_left_son->m_key3;
+    else{
+        //there is a right son and a parent or only a right son and no parent, either way the parent is not the closest heigher
+        return minValueNode(node->m_right_son);
+    }
+}
 
-        int key1_option2 = node->m_right_son->m_key1;
-        int key2_option2 = node->m_right_son->m_key2;
-        int key3_option2 = node->m_right_son->m_key3;
-    }
-    else if (node->m_left_son && node->m_right_son == nullptr)
+template <class T>
+Node<T> *AVLtree<T>::closestLowerNode(Node<T> *node)
+{
+    if (!node)
     {
-        if (!node->m_parent){
-            //there is only a left son
-            return node->m_left_son->m_key3;
+        return nullptr;
+    }
+    if (!node->m_parent && !node->m_left_son)
+    {
+        // this node doesnt have a parent or a left son - there is no lower value node in the tree
+        return nullptr;
+    }
+    if (node->m_parent && node->m_left_son == null){
+        //there is a parent and no left son
+        if (node->m_key1 == node->m_parent->m_right_son->m_key1 &&
+            node->m_key2 == node->m_parent->m_right_son->m_key2 &&
+            node->m_key3 == node->m_parent->m_right_son->m_key3)
+        {
+            // this node is the right son of the parent, so the parent is smaller
+           return node->m_parent;    
         }
-        //there is only a parent and left son
-        int key1_option1 = node->m_left_son->m_key1;
-        int key2_option1 = node->m_left_son->m_key2;
-        int key3_option1 = node->m_left_son->m_key3;
-
-        int key1_option2 = node->m_parent->m_key1;
-        int key2_option2 = node->m_parent->m_key2;
-        int key3_option2 = node->m_parent->m_key3;
     }
-    else if (node->m_left_son == nullptr && node->m_right_son)
-    {
-        if (!node->m_parent){
-            //there is only a right son
-            return node->m_right_son->m_key3;
-        }
-        //there is only a parent and right son
-        int key1_option1 = node->m_right_son->m_key1;
-        int key2_option1 = node->m_right_son->m_key2;
-        int key3_option1 = node->m_right_son->m_key3;
-
-        int key1_option2 = node->m_parent->m_key1;
-        int key2_option2 = node->m_parent->m_key2;
-        int key3_option2 = node->m_parent->m_key3;
+    else{
+        //there is a left son and a parent or only a left son and no parent, either way the parent is not the closest lower
+        return maxValueNode(node->m_left_son);
     }
+}
 
+/*
+template <class T>
+Node<T> *AVLtree<T>::closerBetweenTwoOptions(Node<T> *node, Node<T> *option1, Node<T> *option2)
+{
+
+    int key1_option1 = option1->m_key1;
+    int key2_option1 = option1->m_key2;
+    int key3_option1 = option1->m_key3;
+    //
+    int key1_option2 = option2->m_key1;
+    int key2_option2 = option2->m_key2;
+    int key3_option2 = option2->m_key3;
+    
     if (abs(key1_option1, node->m_key1) < abs(key1_option2, node->m_key1))
     {
-        return key3_option1;
+        return option1;
     }
     else if (abs(key1_option1, node->m_key1) > abs(key1_option2, node->m_key1))
     {
-        return key3_option2;
+        return option2;
     }
     else
     {
         if (abs(key2_option1, node->m_key2) < abs(key2_option2, node->m_key2))
         {
-            return key3_option1;
+            return option1;
         }
         else if (abs(key2_option1, node->m_key2) > abs(key2_option2, node->m_key2))
         {
-            return key3_option2;
+            return option2;
         }
         else
         {
             if (abs(key3_option1, node->m_key3) < abs(key3_option2, node->m_key3))
             {
-                return key3_option1;
+                return option1;
             }
             else if (abs(key3_option1, node->m_key3) > abs(key3_option2, node->m_key3))
             {
-                return key3_option2;
+                return option2;
             }
             else
             {
-                return max(key3_option1, key3_option2);
+                if (key3_option1 < key3_option2)
+                {
+                    return option2
+                }
+                return option1;
             }
         }
     }
+}
+*/
+
+
+
+
+/*
+template <class T>
+Node<T> * closestNode(Node<T> *node)
+{
+    if (!node)
+    {
+        return nullptr;
+    }
+    if (!node->m_left_son && !node->m_right_son){
+
+        if (!node->m_parent)
+        {
+            // this is the only node in the tree
+            return node;
+        }
+        // there is only a parent
+        return node->m_parent;
+    }
+    Node<T>* option1 = nullptr;
+    Node<T>* option2 = nullptr;
+    int key1_option1, key2_option1, key3_option1, key1_option2, key2_option2, key3_option2;
+
+    if (node->m_left_son && node->m_right_son)
+    {
+        //there are two children
+        option1 = maxValueNode(node->m_left_son);
+        key1_option1 = option1->m_key1;
+        key2_option1 = option1->m_key2;
+        key3_option1 = option1->m_key3;
+
+        option2 = minValueNode(node->m_right_son);
+        key1_option2 = option2->m_key1;
+        key2_option2 = option2->m_key2;
+        key3_option2 = option2->m_key3;
+    }
+    else if (node->m_left_son && node->m_right_son == nullptr)
+    {
+        if (!node->m_parent){
+            //there is only a left son
+            return maxValueNode(node->m_left_son);
+        }
+        //there is only a parent and left son
+        option1 = maxValueNode(node->m_left_son);
+        key1_option1 = option1->m_key1;
+        key2_option1 = option1->m_key2;
+        key3_option1 = option1->m_key3;
+
+        option2 = node->m_parent;
+        key1_option2 = option2->m_key1;
+        key2_option2 = option2->m_key2;
+        key3_option2 = option2->m_key3;
+    }
+    else if (node->m_left_son == nullptr && node->m_right_son)
+    {
+        if (!node->m_parent){
+            //there is only a right son
+            return minValueNode(node->m_right_son);
+        }
+        //there is only a parent and right son
+        option1 = minValueNode(node->m_right_son);
+        key1_option1 = option1->m_key1;
+        key2_option1 = option1->m_key2;
+        key3_option1 = option1->m_key3;
+
+        option2 = node->m_parent;
+        key1_option2 = option2->m_key1;
+        key2_option2 = option2->m_key2;
+        key3_option2 = option2->m_key3;
+    }
+
+    if (abs(key1_option1, node->m_key1) < abs(key1_option2, node->m_key1))
+    {
+        return option1;
+    }
+    else if (abs(key1_option1, node->m_key1) > abs(key1_option2, node->m_key1))
+    {
+        return option2;
+    }
+    else
+    {
+        if (abs(key2_option1, node->m_key2) < abs(key2_option2, node->m_key2))
+        {
+            return option1;
+        }
+        else if (abs(key2_option1, node->m_key2) > abs(key2_option2, node->m_key2))
+        {
+            return option2;
+        }
+        else
+        {
+            if (abs(key3_option1, node->m_key3) < abs(key3_option2, node->m_key3))
+            {
+                return option1;
+            }
+            else if (abs(key3_option1, node->m_key3) > abs(key3_option2, node->m_key3))
+            {
+                return option2;
+            }
+            else
+            {
+                if (key3_option1 < key3_option2){
+                    return option2
+                }
+                return option1;
+            }
+        }
+    }
+}
+*/
+
+
+/*check with shira*/
+template <class T>
+int AVLtree<T>::inOrderVisitUnite(Node<T> *node, Node<T> **array, int start_index)
+{
+    if (!node)
+    {
+        return start_index;
+    }
+
+    int index_after_left_visit = inOrderVisitUnite(node->m_left_son, array, start_index);
+
+    //we sort by id 
+    
+     array[index_after_left_visit]=node;
+      int index_after_right_visit = inOrderVisit(node->m_right_son, array, index_after_left_visit + 1);
+     return index_after_right_visit;
+
+}
+
+template<class T>
+Node<T>* AVLtree<T>::merge(Node<T> **array1,Node<T> **array2,Node<T>** mergedArray ,int size1,int size2)
+{
+   
+    int i=0,j=0,k=0;
+    while(i<size1&&j<size2)
+    {
+        if(array1[i]->m_key3<array2[j]->m_key3)
+        {
+            mergedArray[k]=array1[i];
+            i++;
+        }
+        else
+        {
+            mergedArray[k]=array1[j];
+            j++;
+        }
+        k++;
+    }
+    while(i<m)
+    {
+         mergedArray[k] = array1[i];
+        i++; k++;
+    }
+    while(j<size2)
+    {
+         mergedArray[k] = array2[j];
+        j++; k++;
+    }
+    return mergedArray;
+
+
+
 }
 
 /**************end of AVLtree functions***************/
 
 #endif
+
+/*
+Node<T> *AVLtree<T>::insertNode(Node<T> *root, int key1, int key2, int key3, const T &data_element)
+{
+    if (root == nullptr)
+    {
+        root = new Node<T>(T, key1, key2, key3);
+        if (this->m_heighest_key1 < key1 || (this->m_heighest_key1 == key1 && this->m_heighest_key2 > key2) ||
+            (this->m_heighest_key1 == key1 && this->m_heighest_key2 == key2 && this->m_heighest_key3 < key3))
+        {
+            this->m_heighest_key1 = key1;
+            this->m_heighest_key2 = key2;
+            this->m_heighest_key3 = key3;
+        }
+        return root;
+    }
+    if (key1 < root->m_key1)
+    {
+        Node<T> *new_left = insertNode(root->m_left_son, key1, key2, key3, data_element);
+        if (!new_left)
+        {
+            new_left->m_parent = root;
+        }
+        root->m_left_son = new_left;
+    }
+    else if (key1 > root->m_key1)
+    {
+        Node<T> *new_right = insertNode(root->m_right_son, key1, key2, key3, data_element);
+        if (!new_right)
+        {
+            new_right->m_parent = root;
+        }
+        root->m_right_son = new_right;
+    }
+    else
+    {
+        if (key2 < root->m_key2)
+        {
+            Node<T> *new_right = insertNode(root->m_right_son, key1, key2, key3, data_element);
+            if (!new_right)
+            {
+                new_right->m_parent = root;
+            }
+            root->m_right_son = new_right;
+        }
+        else if (key2 > root->m_key2)
+        {
+            Node<T> *new_left = insertNode(root->m_left_son, key1, key2, key3, data_element);
+            if (!new_left)
+            {
+                new_left->m_parent = root;
+            }
+            root->m_left_son = new_left;
+        }
+        else
+        {
+            if (key3 < root->m_key3)
+            {
+                Node<T> *new_left = insertNode(root->m_left_son, key1, key2, key3, data_element);
+                if (!new_left)
+                {
+                    new_left->m_parent = root;
+                }
+                root->m_left_son = new_left;
+            }
+            else if (key3 > root->m_key3)
+            {
+                Node<T> *new_right = insertNode(root->m_left_son, key1, key2, key3, data_element);
+                if (!new_right)
+                {
+                    new_right->m_parent = root;
+                }
+                root->m_right_son = new_right;
+            }
+        }
+    }
+    if (this->m_heighest_key1 < key1 || (this->m_heighest_key1 == key1 && this->m_heighest_key2 > key2) ||
+        (this->m_heighest_key1 == key1 && this->m_heighest_key2 == key2 && this->m_heighest_key3 < key3))
+    {
+        this->m_heighest_key1 = key1;
+        this->m_heighest_key2 = key2;
+        this->m_heighest_key3 = key3;
+    }
+    root->m_height = 1 + max(calcHeight(root->m_left_son),
+                             calcHeight(root->m_right_son));
+
+    int balance_factor = getBalance(root);
+    if (balance_factor == 2 && getBalance(node->m_left_son) == 1)
+    {
+        // LL ROTATION
+        return RotateLL(root)
+    }
+    else if (balance_factor == -2 && getBalance(node->m_right_son) == -1)
+    {
+        // RR ROTATION
+        return RotateRR(root);
+    }
+    else if (balance_factor == -2 && getBalance(node->m_right_son) == 1)
+    {
+        // RL ROTATION
+        return RotateRL(root);
+    }
+    else if (balance_factor == 2 && getBalance(node->m_left_son) == -1)
+    {
+        // LR ROTATION
+        return RotateLR(root);
+    }
+    return root;
+}
