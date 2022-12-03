@@ -471,66 +471,163 @@ StatusType world_cup_t::unite_teams(int teamId1, int teamId2, int newTeamId)
 	{
 		return StatusType::INVALID_INPUT;
 	}
-
 	Node<Team> *team1 = this->m_tree_teams_by_id->findNode(this->m_tree_teams_by_id->m_root, teamId1, 0, 0);
 	Node<Team> *team2 = this->m_tree_teams_by_id->findNode(this->m_tree_teams_by_id->m_root, teamId2, 0, 0);
 	Node<Team> *newTeam = this->m_tree_teams_by_id->findNode(this->m_tree_teams_by_id->m_root, newTeamId, 0, 0);
 	// check if one or two of the teams dont excise
-	if (!team1 || !team2)
+	if (!team1 || !team2 || ((newTeamId != teamId1 && newTeamId != teamId2) && newTeam))
 	{
+		//one of the teams does not exist OR a team with the newTeam's ID exists and it isnt one of the given teams
 		return StatusType::FAILURE;
 	}
 
-	// the newTeam is not team 1 or 2
+	Node<ready_team> *readyTeam1 = this->m_tree_ready_teams->findNode(this->m_tree_ready_teams->m_root, teamId1, 0, 0);
+	Node<ready_team> *readyTeam2 = this->m_tree_ready_teams->findNode(this->m_tree_ready_teams->m_root, teamId2, 0, 0);
+	bool oneOrBothTeamsWasReady = readyTeam1 || readyTeam2;
+
+	int numPlayersTeam1 = team1->m_element.m_num_players;
+	int numPlayersTeam2 = team2->m_element.m_num_players;
+	Node<player_in_team> **arrayPlayersID1 = new Node<player_in_team> *[numPlayersTeam1];
+	Node<player_in_team> **arrayPlayersScore1 = new Node<player_in_team> *[numPlayersTeam1];
+	Node<player_in_team> **arrayPlayersID2 = new Node<player_in_team> *[numPlayersTeam2];
+	Node<player_in_team> **arrayPlayersScore2 = new Node<player_in_team> *[numPlayersTeam2];
+	Node<player_in_team> **mergeArrayID = new Node<player_in_team> *[(numPlayersTeam1) + (numPlayersTeam2)];
+	Node<player_in_team> **mergeArrayScore = new Node<player_in_team> *[(numPlayersTeam1) + (numPlayersTeam2)];
+
+	// create all the arrays
+	team1->m_element.m_tree_players_in_team_by_id->inOrderVisitUnite(team1->m_element.m_tree_players_in_team_by_id->m_root, arrayPlayersID1, 0);
+	team1->m_element.m_tree_players_in_team_by_score->inOrderVisitUnite(team1->m_element.m_tree_players_in_team_by_score->m_root, arrayPlayersScore1, 0);
+	team2->m_element.m_tree_players_in_team_by_id->inOrderVisitUnite(team2->m_element.m_tree_players_in_team_by_id->m_root, arrayPlayersID2, 0);
+	team2->m_element.m_tree_players_in_team_by_score->inOrderVisitUnite(team2->m_element.m_tree_players_in_team_by_score->m_root, arrayPlayersScore2, 0);
+
 	// here we might have deleted the contanet of the array !!!!!!
 	// dont forget to delete all new
 	if (newTeamId != teamId1 && newTeamId != teamId2)
-	{
-		if (newTeam)
-		{
-			return StatusType::FAILURE;
-		}
-
+	{	
+		// the newTeam is not team 1 or 2
 		this->add_team(newTeamId, team1->m_element.m_points + team2->m_element.m_points);
+		newTeam = this->m_tree_teams_by_id->findNode(this->m_tree_teams_by_id->m_root, newTeamId, 0, 0);
 
-		int numPlayersTeam1 = team1->m_element.m_num_players;
-		int numPlayersTeam2 = team2->m_element.m_num_players;
-		Node<player_in_team> **arrayPlayersID1 = new Node<player_in_team> *[numPlayersTeam1];
-		Node<player_in_team> **arrayPlayersScore1 = new Node<player_in_team> *[numPlayersTeam1];
-		Node<player_in_team> **arrayPlayersID2 = new Node<player_in_team> *[numPlayersTeam2];
-		Node<player_in_team> **arrayPlayersScore2 = new Node<player_in_team> *[numPlayersTeam2];
-		Node<player_in_team> **mergeArrayID = new Node<player_in_team> *[(numPlayersTeam1) + (numPlayersTeam2)];
-		Node<player_in_team> **mergeArrayScore = new Node<player_in_team> *[(numPlayersTeam1) + (numPlayersTeam2)];
-		// create all the array
-
-		team1->m_element.m_tree_players_in_team_by_id->inOrderVisitUnite(team1->m_element.m_tree_players_in_team_by_id->m_root, arrayPlayersID1, 0);
-		team1->m_element.m_tree_players_in_team_by_score->inOrderVisitUnite(team1->m_element.m_tree_players_in_team_by_score->m_root, arrayPlayersScore1, 0);
-		team2->m_element.m_tree_players_in_team_by_id->inOrderVisitUnite(team2->m_element.m_tree_players_in_team_by_id->m_root, arrayPlayersID2, 0);
-		team2->m_element.m_tree_players_in_team_by_score->inOrderVisitUnite(team2->m_element.m_tree_players_in_team_by_score->m_root, arrayPlayersScore2, 0);
-
-		newTeam->m_element.m_tree_players_in_team_by_id->merge(arrayPlayersID1, arrayPlayersID2, mergeArrayID, numPlayersTeam1, numPlayersTeam2);
-		newTeam->m_element.m_tree_players_in_team_by_score->merge(arrayPlayersScore1, arrayPlayersScore2, mergeArrayScore, numPlayersTeam1, numPlayersTeam2);
-
-		newTeam->m_element.m_tree_players_in_team_by_id->m_root = newTeam->m_element.m_tree_players_in_team_by_id->arrayToTree(mergeArrayID, 0, (numPlayersTeam1) + (numPlayersTeam2));
-		newTeam->m_element.m_tree_players_in_team_by_score->m_root = newTeam->m_element.m_tree_players_in_team_by_score->arrayToTree(mergeArrayScore, 0, (numPlayersTeam1) + (numPlayersTeam2));
-
-		delete[]arrayPlayersID1;
-		delete[]arrayPlayersID2;
-		delete[]arrayPlayersScore1;
-		delete[]arrayPlayersScore2;
-		delete[]mergeArrayID;
-		delete[]mergeArrayScore;
+		// if one of the teams was ready before they were united, the new united team will be ready
+		if (oneOrBothTeamsWasReady)
+		{
+			if (readyTeam1)
+			{
+				this->m_tree_ready_teams->deleteNode(this->m_tree_ready_teams->m_root, teamId1, 0, 0);
+				this->m_num_good_teams--;
+			}
+			if (readyTeam2)
+			{
+				this->m_tree_ready_teams->deleteNode(this->m_tree_ready_teams->m_root, teamId2, 0, 0);
+				this->m_num_good_teams--;
+			}
+			ready_team newReadyTeam(newTeamId, newTeam);
+			this->m_tree_ready_teams->insertNode(this->m_tree_ready_teams->m_root, newTeamId, 0, 0, newReadyTeam);
+			this->m_num_good_teams++;
+		}
 	}
-
-	if(newTeamId==teamId1)
+	else if (newTeamId == teamId1)
 	{
-		
+		// if one of the teams was ready before they were united, the new united team will be ready
+		if (readyTeam2)
+		{
+			if (readyTeam1)
+			{
+				this->m_tree_ready_teams->deleteNode(this->m_tree_ready_teams->m_root, teamId2, 0, 0);
+				this->m_num_good_teams--;
+			}
+			else
+			{
+				readyTeam2->m_element.m_team = team1;
+				readyTeam2->m_element.m_team_id = teamId1;
+			}
+		}
+	}
+	else if (newTeamId == teamId2)
+	{
+		// if one of the teams was ready before they were united, the new united team will be ready
+		if (readyTeam1)
+		{
+			if (readyTeam2)
+			{
+				this->m_tree_ready_teams->deleteNode(this->m_tree_ready_teams->m_root, teamId1, 0, 0);
+				this->m_num_good_teams--;
+			}
+			else
+			{
+				readyTeam1->m_element.m_team = team2;
+				readyTeam1->m_element.m_team_id = teamId2;
+			}
+		}
 	}
 
+	for (int i = 0; i < numPlayersTeam1; i++)
+	{
+		arrayPlayersID1[i]->m_element.m_player->m_element.m_games_played -= team2->m_element.m_games_played_by_team;
+		arrayPlayersID1[i]->m_element.m_player->m_element.m_team_id = newTeamId;
+	}
+	for (int i = 0; i < numPlayersTeam2; i++)
+	{
+		arrayPlayersID2[i]->m_element.m_player->m_element.m_games_played -= team1->m_element.m_games_played_by_team;
+		arrayPlayersID2[i]->m_element.m_player->m_element.m_team_id = newTeamId;
+	}
 
+	newTeam->m_element.m_games_played_by_team = team1->m_element.m_games_played_by_team + team2->m_element.m_games_played_by_team;
+	newTeam->m_element.m_num_goalkeeprs = team1->m_element.m_num_goalkeeprs + team2->m_element.m_num_goalkeeprs;
+	newTeam->m_element.m_num_players = team1->m_element.m_num_players + team2->m_element.m_num_players;
+	newTeam->m_element.m_winning_num = team1->m_element.m_winning_num + team2->m_element.m_winning_num;
+	newTeam->m_element.m_points = team1->m_element.m_points + team2->m_element.m_points;
 
+	newTeam->m_element.m_tree_players_in_team_by_id->merge(arrayPlayersID1, arrayPlayersID2, mergeArrayID, numPlayersTeam1, numPlayersTeam2);
+	newTeam->m_element.m_tree_players_in_team_by_score->merge(arrayPlayersScore1, arrayPlayersScore2, mergeArrayScore, numPlayersTeam1, numPlayersTeam2);
 
-	
+	newTeam->m_element.m_tree_players_in_team_by_id->m_root = newTeam->m_element.m_tree_players_in_team_by_id->arrayToTree(mergeArrayID, 0, (numPlayersTeam1) + (numPlayersTeam2)-1);
+	newTeam->m_element.m_tree_players_in_team_by_score->m_root = newTeam->m_element.m_tree_players_in_team_by_score->arrayToTree(mergeArrayScore, 0, (numPlayersTeam1) + (numPlayersTeam2)-1);
+
+	// insert the new united team into the ready teams tree if needed
+	if (!oneOrBothTeamsWasReady && newTeam->m_element.check_team_ready())
+	{
+		ready_team newReadyTeam(newTeamId, newTeam);
+		this->m_tree_ready_teams->insertNode(this->m_tree_ready_teams->m_root, newTeamId, 0, 0, newReadyTeam);
+		this->m_num_good_teams++;
+	}
+
+	// update the heighest key in each tree of players
+	newTeam->m_element.m_tree_players_in_team_by_id->m_heighest_key1 = mergeArrayID[(numPlayersTeam1) + (numPlayersTeam2)-1]->m_key1;
+	newTeam->m_element.m_tree_players_in_team_by_id->m_heighest_key2 = mergeArrayID[(numPlayersTeam1) + (numPlayersTeam2)-1]->m_key2;
+	newTeam->m_element.m_tree_players_in_team_by_id->m_heighest_key3 = mergeArrayID[(numPlayersTeam1) + (numPlayersTeam2)-1]->m_key3;
+
+	newTeam->m_element.m_tree_players_in_team_by_score->m_heighest_key1 = mergeArrayScore[(numPlayersTeam1) + (numPlayersTeam2)-1]->m_key1;
+	newTeam->m_element.m_tree_players_in_team_by_score->m_heighest_key2 = mergeArrayScore[(numPlayersTeam1) + (numPlayersTeam2)-1]->m_key2;
+	newTeam->m_element.m_tree_players_in_team_by_score->m_heighest_key3 = mergeArrayScore[(numPlayersTeam1) + (numPlayersTeam2)-1]->m_key3;
+
+	delete[] arrayPlayersID1;
+	delete[] arrayPlayersID2;
+	delete[] arrayPlayersScore1;
+	delete[] arrayPlayersScore2;
+	delete[] mergeArrayID;
+	delete[] mergeArrayScore;
+
+	// remove the old teams after they have been united to a new team under a new name
+	if (newTeamId != teamId1 && newTeamId != teamId1)
+	{
+		team1->m_element.m_num_players = 0;
+		team2->m_element.m_num_players = 0;
+
+		this->remove_team(team1->m_element.m_team_id);
+		this->remove_team(team2->m_element.m_team_id);
+	}
+	else if (newTeamId == teamId1)
+	{
+		team2->m_element.m_num_players = 0;
+		this->remove_team(team2->m_element.m_team_id);
+	}
+	else if (newTeamId == teamId2)
+	{
+		team1->m_element.m_num_players = 0;
+		this->remove_team(team1->m_element.m_team_id);
+	}
+
 	return StatusType::SUCCESS;
 }
 
@@ -658,7 +755,8 @@ output_t<int> world_cup_t::knockout_winner(int minTeamId, int maxTeamId)
 	int size = numGoodTeams;
 	for (size; size > 0; size = std::round(size / 2))
 	{
-		if (size == 1){
+		if (size == 1)
+		{
 			return teams[0];
 		}
 		for (int i = 0; i < size; i += 2)
@@ -672,15 +770,15 @@ output_t<int> world_cup_t::knockout_winner(int minTeamId, int maxTeamId)
 			{
 				if (winning_nums[i] < winning_nums[i + 1])
 				{
-					teams[i/2] = teams[i + 1];
+					teams[i / 2] = teams[i + 1];
 				}
 				else if (winning_nums[i] > winning_nums[i + 1])
 				{
-					teams[i/2] = teams[i];
+					teams[i / 2] = teams[i];
 				}
 				else
 				{
-					teams[i/2] = (teams[i] > teams[i+1])? teams[i] : teams[i+1];
+					teams[i / 2] = (teams[i] > teams[i + 1]) ? teams[i] : teams[i + 1];
 				}
 				winning_nums[i / 2] = winning_nums[i] + winning_nums[i + 1] + 3;
 			}

@@ -81,14 +81,14 @@ public:
     Node<T> *deleteNode(Node<T> *node, int key1, int key2, int key3);
     Node<T> *AVLtree<T>::minValueNode(Node<T> *node);
     Node<T> *AVLtree<T>::maxValueNode(Node<T> *node);
-    int inOrderVisit(Node<T> *node, int * const array, int start_index);
-    int inOrderVisitBetweenRange(Node<T> *node, Node<T> ** const array, int start_index, int minRange, int maxRange);
+    int inOrderVisit(Node<T> *node, int *const array, int start_index);
+    int inOrderVisitBetweenRange(Node<T> *node, Node<T> **const array, int start_index, int minRange, int maxRange);
+    int inOrderVisitUnite(Node<T> *node, Node<T> **array, int start_index);
     Node<T> *closestHeigherNode(Node<T> *node);
     Node<T> *closestLowerNode(Node<T> *node);
     Node<T> *closerBetweenTwoOptions(Node<T> *node, Node<T> *option1, Node<T> *option2);
-    int inOrderVisitUnite(Node<T> *node, Node<T> **array, int start_index);
-    Node<T>*merge(Node<T> **array1,Node<T> **array2,Node<T>** mergedArray, int size1,int size2);
-    Node<T>* arrayToTree(Node<T>** array,int start,int end);
+    Node<T> *merge(Node<T> **array1, Node<T> **array2, Node<T> **mergedArray, int size1, int size2);
+    Node<T> *arrayToTree(Node<T> **array, int start, int end);
 
     int max(int a, int b)
     {
@@ -242,7 +242,7 @@ Node<T> *AVLtree<T>::insertNode(Node<T> *root, int key1, int key2, int key3, con
         }
         root->m_right_son = new_right;
     }
-    else 
+    else
     {
         if (key2 < root->m_key2)
         {
@@ -556,7 +556,7 @@ Node<T> *AVLtree<T>::deleteNode(Node<T> *root, int key1, int key2, int key3) // 
 }
 
 template <class T>
-int AVLtree<T>::inOrderVisit(Node<T> *node, int * const array, int start_index)
+int AVLtree<T>::inOrderVisit(Node<T> *node, int *const array, int start_index)
 {
     if (!node)
     {
@@ -579,16 +579,21 @@ int AVLtree<T>::inOrderVisit(Node<T> *node, int * const array, int start_index)
 }
 
 template <class T>
-int AVLtree<T>::inOrderVisitBetweenRange(Node<T> *node, Node<T> ** const array, int start_index, int minRange, int maxRange){
-    if (!node){
+int AVLtree<T>::inOrderVisitBetweenRange(Node<T> *node, Node<T> **const array, int start_index, int minRange, int maxRange)
+{
+    if (!node)
+    {
         return start_index;
     }
-    else{
+    else
+    {
         int index = start_index;
-        if (node->m_key1 > minRange){
+        if (node->m_key1 > minRange)
+        {
             index = inOrderVisit(node->m_left_son, array, start_index);
         }
-        if (node->m_key1 >= minRange && node->m_key1 <= maxRange){
+        if (node->m_key1 >= minRange && node->m_key1 <= maxRange)
+        {
             array[index] = node;
             index++
         }
@@ -612,18 +617,20 @@ Node<T> *AVLtree<T>::closestHeigherNode(Node<T> *node)
         // this node doesnt have a parent or a right son - there is no heigher value node in the tree
         return nullptr;
     }
-    if (node->m_parent && node->m_right_son == null){
-        //there is a parent and no right son
+    if (node->m_parent && node->m_right_son == null)
+    {
+        // there is a parent and no right son
         if (node->m_key1 == node->m_parent->m_left_son->m_key1 &&
             node->m_key2 == node->m_parent->m_left_son->m_key2 &&
             node->m_key3 == node->m_parent->m_left_son->m_key3)
         {
             // this node is the left son of the parent, so the parent is bigger
-           return node->m_parent;    
+            return node->m_parent;
         }
     }
-    else{
-        //there is a right son and a parent or only a right son and no parent, either way the parent is not the closest heigher
+    else
+    {
+        // there is a right son and a parent or only a right son and no parent, either way the parent is not the closest heigher
         return minValueNode(node->m_right_son);
     }
 }
@@ -640,22 +647,23 @@ Node<T> *AVLtree<T>::closestLowerNode(Node<T> *node)
         // this node doesnt have a parent or a left son - there is no lower value node in the tree
         return nullptr;
     }
-    if (node->m_parent && node->m_left_son == nullptr){
-        //there is a parent and no left son
+    if (node->m_parent && node->m_left_son == nullptr)
+    {
+        // there is a parent and no left son
         if (node->m_key1 == node->m_parent->m_right_son->m_key1 &&
             node->m_key2 == node->m_parent->m_right_son->m_key2 &&
             node->m_key3 == node->m_parent->m_right_son->m_key3)
         {
             // this node is the right son of the parent, so the parent is smaller
-           return node->m_parent;    
+            return node->m_parent;
         }
     }
-    else{
-        //there is a left son and a parent or only a left son and no parent, either way the parent is not the closest lower
+    else
+    {
+        // there is a left son and a parent or only a left son and no parent, either way the parent is not the closest lower
         return maxValueNode(node->m_left_son);
     }
 }
-
 
 template <class T>
 Node<T> *AVLtree<T>::closerBetweenTwoOptions(Node<T> *node, Node<T> *option1, Node<T> *option2)
@@ -668,7 +676,7 @@ Node<T> *AVLtree<T>::closerBetweenTwoOptions(Node<T> *node, Node<T> *option1, No
     int key1_option2 = option2->m_key1;
     int key2_option2 = option2->m_key2;
     int key3_option2 = option2->m_key3;
-    
+
     if (abs(key1_option1, node->m_key1) < abs(key1_option2, node->m_key1))
     {
         return option1;
@@ -708,10 +716,6 @@ Node<T> *AVLtree<T>::closerBetweenTwoOptions(Node<T> *node, Node<T> *option1, No
         }
     }
 }
-
-
-
-
 
 /*
 template <class T>
@@ -823,8 +827,6 @@ Node<T> * closestNode(Node<T> *node)
 }
 */
 
-
-
 template <class T>
 int AVLtree<T>::inOrderVisitUnite(Node<T> *node, Node<T> **array, int start_index)
 {
@@ -833,115 +835,117 @@ int AVLtree<T>::inOrderVisitUnite(Node<T> *node, Node<T> **array, int start_inde
         return start_index;
     }
     int index_after_left_visit = inOrderVisitUnite(node->m_left_son, array, start_index);
-    array[index_after_left_visit]=node;
+    array[index_after_left_visit] = new Node<T>*(node->m_element,node->m_key1,node->m_key2, node->m_key3);
     int index_after_right_visit = inOrderVisit(node->m_right_son, array, index_after_left_visit + 1);
+    delete node;
     return index_after_right_visit;
-
 }
 
-
-template<class T>
-Node<T>* AVLtree<T>::merge(Node<T> **array1,Node<T> **array2,Node<T>** mergedArray ,int size1,int size2)
+template <class T>
+Node<T> *AVLtree<T>::merge(Node<T> **array1, Node<T> **array2, Node<T> **mergedArray, int size1, int size2)
 {
-   
-    int i=0,j=0,k=0;
-    while(i<size1 && j<size2)
+
+    int i = 0, j = 0, k = 0;
+    while (i < size1 && j < size2)
     {
-        //by goals 
-        if(array1[i]->m_key1 < array2[j]->m_key1)
+        // by goals
+        if (array1[i]->m_key1 < array2[j]->m_key1)
         {
-            mergedArray[k]=array1[i];
+            mergedArray[k] = array1[i];
             i++;
             k++;
             continue;
         }
-        else if(array1[i]->m_key1 > array2[j]->m_key1)
+        else if (array1[i]->m_key1 > array2[j]->m_key1)
         {
-            mergedArray[k]=array2[j];
+            mergedArray[k] = array2[j];
             j++;
             k++;
             continue;
         }
         else
         {
-            //by cards
-            if(array1[i]->m_key2 < array2[j]->m_key2)
+            // by cards
+            if (array1[i]->m_key2 < array2[j]->m_key2)
             {
-             mergedArray[k]=array2[j];
-            j++;
-            k++;
-            continue;
-            }
-
-            else if(array1[i]->m_key2 > array2[j]->m_key2)
-            {
-            mergedArray[k]=array1[i];
-            i++;
-            k++;
-            continue;
-            }
-            //by id 
-            else
-            {
-                if(array1[i]->m_key3 < array2[j]->m_key3)
-                {
-                mergedArray[k]=array1[i];
-                i++;
-                k++;
-                continue;
-                }
-                else if(array1[i]->m_key2 > array2[j]->m_key2)
-                {
-                 mergedArray[k]=array2[j];
+                mergedArray[k] = array2[j];
                 j++;
                 k++;
                 continue;
+            }
+
+            else if (array1[i]->m_key2 > array2[j]->m_key2)
+            {
+                mergedArray[k] = array1[i];
+                i++;
+                k++;
+                continue;
+            }
+            // by id
+            else
+            {
+                if (array1[i]->m_key3 < array2[j]->m_key3)
+                {
+                    mergedArray[k] = array1[i];
+                    i++;
+                    k++;
+                    continue;
+                }
+                else if (array1[i]->m_key2 > array2[j]->m_key2)
+                {
+                    mergedArray[k] = array2[j];
+                    j++;
+                    k++;
+                    continue;
                 }
             }
         }
-       
-
     }
-    while(i<size1)
+    while (i < size1)
     {
-         mergedArray[k] = array1[i];
-        i++; k++;
+        mergedArray[k] = array1[i];
+        i++;
+        k++;
     }
-    while(j<size2)
+    while (j < size2)
     {
-         mergedArray[k] = array2[j];
-        j++; k++;
+        mergedArray[k] = array2[j];
+        j++;
+        k++;
     }
     return mergedArray;
-
 }
 
-
 /* check with shira */
-template<class T>
-Node<T>* arrayToTree(Node<T>** array,int start,int end)
+template <class T>
+Node<T> *AVLtree<T>::arrayToTree(Node<T> **array, int start, int end)
 {
-    if(start > end)
+    if (start > end)
     {
         return nullptr;
     }
-    int middle =(start+end)/2;
-    try{
-    Node<T>* curr = new Node<T>(array[mid])
+    int middle = (start + end) / 2;
+    try
+    {
+        Node<T> *curr = new Node<T>(array[mid]->m_element, array[mid]->m_key1, array[mid]->m_key2, array[mid]->m_key3);
     }
-    
-    catch(std::bad_alloc)
+
+    catch (std::bad_alloc)
     {
         return StatusType::ALLOCATION_ERROR;
     }
 
-    curr->m_left_son=arrayToTree(array,start,mid-1);
-    curr->m_right_son=arrayToTree(array,mid+1,end);
-
+    curr->m_left_son = arrayToTree(array, start, mid - 1);
+    curr->m_right_son = arrayToTree(array, mid + 1, end);
+    if (!curr->m_left_son){
+        curr->m_left_son->m_parent = curr;
+    }
+    if (!curr->m_right_son){
+            curr->m_right_son->m_parent = curr;
+    }
     return curr;
 }
 
 /**************end of AVLtree functions***************/
 
 #endif
-
