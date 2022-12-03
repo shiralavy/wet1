@@ -15,6 +15,7 @@
 #ifndef WORLDCUP23A1_H_
 #define WORLDCUP23A1_H_
 
+#include <cmath>
 #include "wet1util.h"
 #include "AVLTree.h"
 #include "player.h"
@@ -25,6 +26,7 @@ class world_cup_t {
 private:
 	int m_best_player;
 	int m_num_players;
+	int m_num_good_teams;
 	AVLtree<player>* m_tree_players_by_id; //AVL tree containing all of the players in the tournament sorted by ID
 	AVLtree<player_in_scoreboard>* m_tree_players_by_score; //AVL tree containing all of the players in the tournament sorted by score
     AVLtree<Team>* m_tree_teams_by_id; //AVL tree containing all of the teams in the tournament sorted by id

@@ -120,7 +120,7 @@ StatusType world_cup_t::remove_player_except_from_tree_ready_teams(int playerId)
 
 /***********************end of private functions**********************************************/
 
-world_cup_t::world_cup_t() : m_best_player(-1), m_num_players(0)
+world_cup_t::world_cup_t() : m_best_player(-1), m_num_players(0), m_num_good_teams(0)
 {
 	try
 	{
@@ -162,10 +162,12 @@ world_cup_t::world_cup_t() : m_best_player(-1), m_num_players(0)
 	}
 }
 
-// will need to delete ptr's since we are not using shared ptr
 world_cup_t::~world_cup_t()
 {
-	// code code code
+	delete m_tree_players_by_id;
+	delete m_tree_players_by_score;
+	delete m_tree_teams_by_id;
+	delete m_tree_ready_teams;
 }
 
 StatusType world_cup_t::add_team(int teamId, int points)
@@ -267,6 +269,7 @@ StatusType world_cup_t::add_player(int playerId, int teamId, int gamesPlayed,
 			{
 				ready_team newReadyTeam(teamForNewPlayer->m_key1, teamForNewPlayer);
 				this->m_tree_ready_teams->insertNode(this->m_tree_ready_teams->m_root, teamId, 0, 0, newReadyTeam);
+				this->m_num_good_teams++;
 			}
 
 			// update the team's winning number because this player is added
@@ -339,6 +342,7 @@ StatusType world_cup_t::remove_player(int playerId)
 		if (!tempTeamContainingPlayer->m_element.check_team_ready())
 		{
 			this->m_tree_ready_teams->deleteNode(this->m_tree_ready_teams->m_root, playerToRemove->m_element.m_team_id, 0, 0);
+			this->m_num_good_teams--;
 		}
 	}
 	// update the team's winning number because this player is removed
@@ -388,7 +392,7 @@ StatusType world_cup_t::update_player_stats(int playerId, int gamesPlayed,
 		return res1;
 	}
 
-	// add the payer again with updated stats using the add player function that has a time complexity of logn
+	// add the player again with updated stats using the add player function that has a time complexity of logn
 	StatusType res2 = add_player(playerId, prevTeam, prevGamesPlayed + gamesPlayed, prevGoals + scoredGoals, prevCards + cardsReceived, prevGoalkeeper);
 	if (res2 != StatusType::SUCCESS)
 	{
@@ -470,38 +474,63 @@ StatusType world_cup_t::unite_teams(int teamId1, int teamId2, int newTeamId)
 
 	Node<Team> *team1 = this->m_tree_teams_by_id->findNode(this->m_tree_teams_by_id->m_root, teamId1, 0, 0);
 	Node<Team> *team2 = this->m_tree_teams_by_id->findNode(this->m_tree_teams_by_id->m_root, teamId2, 0, 0);
-	Node<Team> *newTeam = this->m_tree_teams_by_id->findNode(this->m_tree_teams_by_id->m_root, teamId2, 0, 0);
+	Node<Team> *newTeam = this->m_tree_teams_by_id->findNode(this->m_tree_teams_by_id->m_root, newTeamId, 0, 0);
 	// check if one or two of the teams dont excise
-	/*
-	ask about the Failure option
-	*/
 	if (!team1 || !team2)
 	{
 		return StatusType::FAILURE;
 	}
-	//
-	if (newTeam)
+
+	// the newTeam is not team 1 or 2
+	// here we might have deleted the contanet of the array !!!!!!
+	// dont forget to delete all new
+	if (newTeamId != teamId1 && newTeamId != teamId2)
 	{
-		if (newTeam->m_element.m_team_id != teamId1 && newTeam->m_element.m_team_id != teamId2)
+		if (newTeam)
 		{
 			return StatusType::FAILURE;
 		}
-	}
 
-	// the newTeam is not team 1 or 2
-	if (newTeamId != teamId1 && newTeamId != teamId2)
-	{
 		this->add_team(newTeamId, team1->m_element.m_points + team2->m_element.m_points);
+
+		int numPlayersTeam1 = team1->m_element.m_num_players;
+		int numPlayersTeam2 = team2->m_element.m_num_players;
+		Node<player_in_team> **arrayPlayersID1 = new Node<player_in_team> *[numPlayersTeam1];
+		Node<player_in_team> **arrayPlayersScore1 = new Node<player_in_team> *[numPlayersTeam1];
+		Node<player_in_team> **arrayPlayersID2 = new Node<player_in_team> *[numPlayersTeam2];
+		Node<player_in_team> **arrayPlayersScore2 = new Node<player_in_team> *[numPlayersTeam2];
+		Node<player_in_team> **mergeArrayID = new Node<player_in_team> *[(numPlayersTeam1) + (numPlayersTeam2)];
+		Node<player_in_team> **mergeArrayScore = new Node<player_in_team> *[(numPlayersTeam1) + (numPlayersTeam2)];
+		// create all the array
+
+		team1->m_element.m_tree_players_in_team_by_id->inOrderVisitUnite(team1->m_element.m_tree_players_in_team_by_id->m_root, arrayPlayersID1, 0);
+		team1->m_element.m_tree_players_in_team_by_score->inOrderVisitUnite(team1->m_element.m_tree_players_in_team_by_score->m_root, arrayPlayersScore1, 0);
+		team2->m_element.m_tree_players_in_team_by_id->inOrderVisitUnite(team2->m_element.m_tree_players_in_team_by_id->m_root, arrayPlayersID2, 0);
+		team2->m_element.m_tree_players_in_team_by_score->inOrderVisitUnite(team2->m_element.m_tree_players_in_team_by_score->m_root, arrayPlayersScore2, 0);
+
+		newTeam->m_element.m_tree_players_in_team_by_id->merge(arrayPlayersID1, arrayPlayersID2, mergeArrayID, numPlayersTeam1, numPlayersTeam2);
+		newTeam->m_element.m_tree_players_in_team_by_score->merge(arrayPlayersScore1, arrayPlayersScore2, mergeArrayScore, numPlayersTeam1, numPlayersTeam2);
+
+		newTeam->m_element.m_tree_players_in_team_by_id->m_root = newTeam->m_element.m_tree_players_in_team_by_id->arrayToTree(mergeArrayID, 0, (numPlayersTeam1) + (numPlayersTeam2));
+		newTeam->m_element.m_tree_players_in_team_by_score->m_root = newTeam->m_element.m_tree_players_in_team_by_score->arrayToTree(mergeArrayScore, 0, (numPlayersTeam1) + (numPlayersTeam2));
+
+		delete[]arrayPlayersID1;
+		delete[]arrayPlayersID2;
+		delete[]arrayPlayersScore1;
+		delete[]arrayPlayersScore2;
+		delete[]mergeArrayID;
+		delete[]mergeArrayScore;
 	}
 
-	for (int i = 0; i < team1->m_element.m_num_players; i++)
+	if(newTeamId==teamId1)
 	{
+		
 	}
-	// add all players from team1 add_player()
-	// add all players team 2
-	// delete team 1 remove_team()
-	// delete team2 remove_team()
 
+
+
+
+	
 	return StatusType::SUCCESS;
 }
 
@@ -557,8 +586,7 @@ output_t<int> world_cup_t::get_all_players_count(int teamId)
 		// returning number of players in the team
 		return currentTeam->m_element.m_num_players;
 	}
-	static int i = 0;
-	return (i++ == 0) ? 11 : 2;
+	return StatusType::FAILURE;
 }
 
 StatusType world_cup_t::get_all_players(int teamId, int *const output)
@@ -593,13 +621,13 @@ output_t<int> world_cup_t::get_closest_player(int playerId, int teamId)
 		return StatusType::INVALID_INPUT;
 	}
 	Node<Team> *currentTeam = this->m_tree_teams_by_id->findNode(this->m_tree_teams_by_id->m_root, teamId, 0, 0);
-	Node<player_in_team> *playerInTeamById = currentTeam->m_element.m_tree_players_in_team_by_id->findNode(currentTeam->m_element.m_tree_players_in_team_by_id->m_root,playerId, 0,0);
+	Node<player_in_team> *playerInTeamById = currentTeam->m_element.m_tree_players_in_team_by_id->findNode(currentTeam->m_element.m_tree_players_in_team_by_id->m_root, playerId, 0, 0);
 	int goals = playerInTeamById->m_element.m_player->m_element.m_goals;
 	int cards = playerInTeamById->m_element.m_player->m_element.m_cards;
-	Node<player_in_team> *playerInTeamByScore = currentTeam->m_element.m_tree_players_in_team_by_score->findNode(currentTeam->m_element.m_tree_players_in_team_by_score->m_root, goals, cards,playerId);
+	Node<player_in_team> *playerInTeamByScore = currentTeam->m_element.m_tree_players_in_team_by_score->findNode(currentTeam->m_element.m_tree_players_in_team_by_score->m_root, goals, cards, playerId);
 
-	Node<player_in_scoreboard> * playerInScoreBoard = playerInTeamById->m_element.m_player->m_element.m_player_in_scoreboard;
-	Node<player_in_scoreboard> * closest = this->m_tree_players_by_score->closerBetweenTwoOptions(playerInScoreBoard, playerInScoreBoard->m_element.m_next_player_by_score, playerInScoreBoard->m_element.m_prev_player_by_score);
+	Node<player_in_scoreboard> *playerInScoreBoard = playerInTeamById->m_element.m_player->m_element.m_player_in_scoreboard;
+	Node<player_in_scoreboard> *closest = this->m_tree_players_by_score->closerBetweenTwoOptions(playerInScoreBoard, playerInScoreBoard->m_element.m_next_player_by_score, playerInScoreBoard->m_element.m_prev_player_by_score);
 
 	return closest->m_key3;
 }
@@ -612,12 +640,52 @@ output_t<int> world_cup_t::knockout_winner(int minTeamId, int maxTeamId)
 	}
 	Node<ready_team> *currTeam = this->m_tree_ready_teams->m_root;
 
-	while (currTeam)
+	Node<ready_team> **goodTeams = new Node<ready_team> *[this->m_num_good_teams];
+	int numGoodTeams = this->m_tree_ready_teams->inOrderVisitBetweenRange(currTeam, goodTeams, 0, minTeamId, maxTeamId);
+
+	int winning_nums[numGoodTeams];
+	int teams[numGoodTeams];
+
+	// fill winning nums and teams arrays
+	for (int i = 0; i < numGoodTeams; i++)
 	{
-		// good teams
-		if (currTeam->m_element.m_team_id <= maxTeamId && currTeam->m_element.m_team_id >= minTeamId)
+		winning_nums[i] = goodTeams[i]->m_element.m_team->m_element.m_winning_num;
+		teams[i] = goodTeams[i]->m_element.m_team_id;
+	}
+	// MAKE SURE THIS DOESNT DELETE ALL OF THE VALUES IN THE NODES
+	delete[] goodTeams;
+
+	int size = numGoodTeams;
+	for (size; size > 0; size = std::round(size / 2))
+	{
+		if (size == 1){
+			return teams[0];
+		}
+		for (int i = 0; i < size; i += 2)
 		{
+			if (i + 1 == size)
+			{
+				winning_nums[i / 2] = winning_nums[i];
+				teams[i / 2] = teams[i];
+			}
+			else
+			{
+				if (winning_nums[i] < winning_nums[i + 1])
+				{
+					teams[i/2] = teams[i + 1];
+				}
+				else if (winning_nums[i] > winning_nums[i + 1])
+				{
+					teams[i/2] = teams[i];
+				}
+				else
+				{
+					teams[i/2] = (teams[i] > teams[i+1])? teams[i] : teams[i+1];
+				}
+				winning_nums[i / 2] = winning_nums[i] + winning_nums[i + 1] + 3;
+			}
 		}
 	}
+
 	return 2;
 }

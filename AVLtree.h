@@ -81,12 +81,14 @@ public:
     Node<T> *deleteNode(Node<T> *node, int key1, int key2, int key3);
     Node<T> *AVLtree<T>::minValueNode(Node<T> *node);
     Node<T> *AVLtree<T>::maxValueNode(Node<T> *node);
-    int inOrderVisit(Node<T> *node, int *array, int start_index);
+    int inOrderVisit(Node<T> *node, int * const array, int start_index);
+    int inOrderVisitBetweenRange(Node<T> *node, Node<T> ** const array, int start_index, int minRange, int maxRange);
     Node<T> *closestHeigherNode(Node<T> *node);
     Node<T> *closestLowerNode(Node<T> *node);
     Node<T> *closerBetweenTwoOptions(Node<T> *node, Node<T> *option1, Node<T> *option2);
     int inOrderVisitUnite(Node<T> *node, Node<T> **array, int start_index);
     Node<T>*merge(Node<T> **array1,Node<T> **array2,Node<T>** mergedArray, int size1,int size2);
+    Node<T>* arrayToTree(Node<T>** array,int start,int end);
 
     int max(int a, int b)
     {
@@ -240,7 +242,7 @@ Node<T> *AVLtree<T>::insertNode(Node<T> *root, int key1, int key2, int key3, con
         }
         root->m_right_son = new_right;
     }
-    else
+    else 
     {
         if (key2 < root->m_key2)
         {
@@ -554,7 +556,7 @@ Node<T> *AVLtree<T>::deleteNode(Node<T> *root, int key1, int key2, int key3) // 
 }
 
 template <class T>
-int AVLtree<T>::inOrderVisit(Node<T> *node, int *array, int start_index)
+int AVLtree<T>::inOrderVisit(Node<T> *node, int * const array, int start_index)
 {
     if (!node)
     {
@@ -573,6 +575,28 @@ int AVLtree<T>::inOrderVisit(Node<T> *node, int *array, int start_index)
         }
         int index_after_right_visit = inOrderVisit(node->m_right_son, array, index_after_left_visit + 1);
         return index_after_right_visit;
+    }
+}
+
+template <class T>
+int AVLtree<T>::inOrderVisitBetweenRange(Node<T> *node, Node<T> ** const array, int start_index, int minRange, int maxRange){
+    if (!node){
+        return start_index;
+    }
+    else{
+        int index = start_index;
+        if (node->m_key1 > minRange){
+            index = inOrderVisit(node->m_left_son, array, start_index);
+        }
+        if (node->m_key1 >= minRange && node->m_key1 <= maxRange){
+            array[index] = node;
+            index++
+        }
+        if (node->m_key1 < maxRange)
+        {
+            index = inOrderVisit(node->m_right_son, array, index);
+        }
+        return index;
     }
 }
 
@@ -800,7 +824,7 @@ Node<T> * closestNode(Node<T> *node)
 */
 
 
-/*check with shira*/
+
 template <class T>
 int AVLtree<T>::inOrderVisitUnite(Node<T> *node, Node<T> **array, int start_index)
 {
@@ -808,37 +832,77 @@ int AVLtree<T>::inOrderVisitUnite(Node<T> *node, Node<T> **array, int start_inde
     {
         return start_index;
     }
-
     int index_after_left_visit = inOrderVisitUnite(node->m_left_son, array, start_index);
-
-    //we sort by id 
-    
-     array[index_after_left_visit]=node;
-      int index_after_right_visit = inOrderVisit(node->m_right_son, array, index_after_left_visit + 1);
-     return index_after_right_visit;
+    array[index_after_left_visit]=node;
+    int index_after_right_visit = inOrderVisit(node->m_right_son, array, index_after_left_visit + 1);
+    return index_after_right_visit;
 
 }
+
 
 template<class T>
 Node<T>* AVLtree<T>::merge(Node<T> **array1,Node<T> **array2,Node<T>** mergedArray ,int size1,int size2)
 {
    
     int i=0,j=0,k=0;
-    while(i<size1&&j<size2)
+    while(i<size1 && j<size2)
     {
-        if(array1[i]->m_key3<array2[j]->m_key3)
+        //by goals 
+        if(array1[i]->m_key1 < array2[j]->m_key1)
         {
             mergedArray[k]=array1[i];
             i++;
+            k++;
+            continue;
+        }
+        else if(array1[i]->m_key1 > array2[j]->m_key1)
+        {
+            mergedArray[k]=array2[j];
+            j++;
+            k++;
+            continue;
         }
         else
         {
-            mergedArray[k]=array1[j];
+            //by cards
+            if(array1[i]->m_key2 < array2[j]->m_key2)
+            {
+             mergedArray[k]=array2[j];
             j++;
+            k++;
+            continue;
+            }
+
+            else if(array1[i]->m_key2 > array2[j]->m_key2)
+            {
+            mergedArray[k]=array1[i];
+            i++;
+            k++;
+            continue;
+            }
+            //by id 
+            else
+            {
+                if(array1[i]->m_key3 < array2[j]->m_key3)
+                {
+                mergedArray[k]=array1[i];
+                i++;
+                k++;
+                continue;
+                }
+                else if(array1[i]->m_key2 > array2[j]->m_key2)
+                {
+                 mergedArray[k]=array2[j];
+                j++;
+                k++;
+                continue;
+                }
+            }
         }
-        k++;
+       
+
     }
-    while(i<m)
+    while(i<size1)
     {
          mergedArray[k] = array1[i];
         i++; k++;
@@ -850,119 +914,34 @@ Node<T>* AVLtree<T>::merge(Node<T> **array1,Node<T> **array2,Node<T>** mergedArr
     }
     return mergedArray;
 
+}
 
 
+/* check with shira */
+template<class T>
+Node<T>* arrayToTree(Node<T>** array,int start,int end)
+{
+    if(start > end)
+    {
+        return nullptr;
+    }
+    int middle =(start+end)/2;
+    try{
+    Node<T>* curr = new Node<T>(array[mid])
+    }
+    
+    catch(std::bad_alloc)
+    {
+        return StatusType::ALLOCATION_ERROR;
+    }
+
+    curr->m_left_son=arrayToTree(array,start,mid-1);
+    curr->m_right_son=arrayToTree(array,mid+1,end);
+
+    return curr;
 }
 
 /**************end of AVLtree functions***************/
 
 #endif
 
-/*
-Node<T> *AVLtree<T>::insertNode(Node<T> *root, int key1, int key2, int key3, const T &data_element)
-{
-    if (root == nullptr)
-    {
-        root = new Node<T>(T, key1, key2, key3);
-        if (this->m_heighest_key1 < key1 || (this->m_heighest_key1 == key1 && this->m_heighest_key2 > key2) ||
-            (this->m_heighest_key1 == key1 && this->m_heighest_key2 == key2 && this->m_heighest_key3 < key3))
-        {
-            this->m_heighest_key1 = key1;
-            this->m_heighest_key2 = key2;
-            this->m_heighest_key3 = key3;
-        }
-        return root;
-    }
-    if (key1 < root->m_key1)
-    {
-        Node<T> *new_left = insertNode(root->m_left_son, key1, key2, key3, data_element);
-        if (!new_left)
-        {
-            new_left->m_parent = root;
-        }
-        root->m_left_son = new_left;
-    }
-    else if (key1 > root->m_key1)
-    {
-        Node<T> *new_right = insertNode(root->m_right_son, key1, key2, key3, data_element);
-        if (!new_right)
-        {
-            new_right->m_parent = root;
-        }
-        root->m_right_son = new_right;
-    }
-    else
-    {
-        if (key2 < root->m_key2)
-        {
-            Node<T> *new_right = insertNode(root->m_right_son, key1, key2, key3, data_element);
-            if (!new_right)
-            {
-                new_right->m_parent = root;
-            }
-            root->m_right_son = new_right;
-        }
-        else if (key2 > root->m_key2)
-        {
-            Node<T> *new_left = insertNode(root->m_left_son, key1, key2, key3, data_element);
-            if (!new_left)
-            {
-                new_left->m_parent = root;
-            }
-            root->m_left_son = new_left;
-        }
-        else
-        {
-            if (key3 < root->m_key3)
-            {
-                Node<T> *new_left = insertNode(root->m_left_son, key1, key2, key3, data_element);
-                if (!new_left)
-                {
-                    new_left->m_parent = root;
-                }
-                root->m_left_son = new_left;
-            }
-            else if (key3 > root->m_key3)
-            {
-                Node<T> *new_right = insertNode(root->m_left_son, key1, key2, key3, data_element);
-                if (!new_right)
-                {
-                    new_right->m_parent = root;
-                }
-                root->m_right_son = new_right;
-            }
-        }
-    }
-    if (this->m_heighest_key1 < key1 || (this->m_heighest_key1 == key1 && this->m_heighest_key2 > key2) ||
-        (this->m_heighest_key1 == key1 && this->m_heighest_key2 == key2 && this->m_heighest_key3 < key3))
-    {
-        this->m_heighest_key1 = key1;
-        this->m_heighest_key2 = key2;
-        this->m_heighest_key3 = key3;
-    }
-    root->m_height = 1 + max(calcHeight(root->m_left_son),
-                             calcHeight(root->m_right_son));
-
-    int balance_factor = getBalance(root);
-    if (balance_factor == 2 && getBalance(node->m_left_son) == 1)
-    {
-        // LL ROTATION
-        return RotateLL(root)
-    }
-    else if (balance_factor == -2 && getBalance(node->m_right_son) == -1)
-    {
-        // RR ROTATION
-        return RotateRR(root);
-    }
-    else if (balance_factor == -2 && getBalance(node->m_right_son) == 1)
-    {
-        // RL ROTATION
-        return RotateRL(root);
-    }
-    else if (balance_factor == 2 && getBalance(node->m_left_son) == -1)
-    {
-        // LR ROTATION
-        return RotateLR(root);
-    }
-    return root;
-}

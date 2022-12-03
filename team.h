@@ -47,27 +47,11 @@ class Team {
 
     bool check_team_ready()
     {
-        if(this->m_num_players>=11)
-        {
+        if (this->m_num_goalkeeprs > 0 && this->m_num_players >= 11){
             return true;
         }
-        else
-        {
-            return false;
-        }
-        if(this->m_num_goalkeeprs>0)
-        {
-            return true;
-        }
-        else
-        {
-            return false;
-        }
-        
-
+        return false;
     }
-
-
 };
 
 #endif //TEAMS_H_
