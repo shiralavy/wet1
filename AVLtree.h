@@ -717,115 +717,6 @@ Node<T> *AVLtree<T>::closerBetweenTwoOptions(Node<T> *node, Node<T> *option1, No
     }
 }
 
-/*
-template <class T>
-Node<T> * closestNode(Node<T> *node)
-{
-    if (!node)
-    {
-        return nullptr;
-    }
-    if (!node->m_left_son && !node->m_right_son){
-
-        if (!node->m_parent)
-        {
-            // this is the only node in the tree
-            return node;
-        }
-        // there is only a parent
-        return node->m_parent;
-    }
-    Node<T>* option1 = nullptr;
-    Node<T>* option2 = nullptr;
-    int key1_option1, key2_option1, key3_option1, key1_option2, key2_option2, key3_option2;
-
-    if (node->m_left_son && node->m_right_son)
-    {
-        //there are two children
-        option1 = maxValueNode(node->m_left_son);
-        key1_option1 = option1->m_key1;
-        key2_option1 = option1->m_key2;
-        key3_option1 = option1->m_key3;
-
-        option2 = minValueNode(node->m_right_son);
-        key1_option2 = option2->m_key1;
-        key2_option2 = option2->m_key2;
-        key3_option2 = option2->m_key3;
-    }
-    else if (node->m_left_son && node->m_right_son == nullptr)
-    {
-        if (!node->m_parent){
-            //there is only a left son
-            return maxValueNode(node->m_left_son);
-        }
-        //there is only a parent and left son
-        option1 = maxValueNode(node->m_left_son);
-        key1_option1 = option1->m_key1;
-        key2_option1 = option1->m_key2;
-        key3_option1 = option1->m_key3;
-
-        option2 = node->m_parent;
-        key1_option2 = option2->m_key1;
-        key2_option2 = option2->m_key2;
-        key3_option2 = option2->m_key3;
-    }
-    else if (node->m_left_son == nullptr && node->m_right_son)
-    {
-        if (!node->m_parent){
-            //there is only a right son
-            return minValueNode(node->m_right_son);
-        }
-        //there is only a parent and right son
-        option1 = minValueNode(node->m_right_son);
-        key1_option1 = option1->m_key1;
-        key2_option1 = option1->m_key2;
-        key3_option1 = option1->m_key3;
-
-        option2 = node->m_parent;
-        key1_option2 = option2->m_key1;
-        key2_option2 = option2->m_key2;
-        key3_option2 = option2->m_key3;
-    }
-
-    if (abs(key1_option1, node->m_key1) < abs(key1_option2, node->m_key1))
-    {
-        return option1;
-    }
-    else if (abs(key1_option1, node->m_key1) > abs(key1_option2, node->m_key1))
-    {
-        return option2;
-    }
-    else
-    {
-        if (abs(key2_option1, node->m_key2) < abs(key2_option2, node->m_key2))
-        {
-            return option1;
-        }
-        else if (abs(key2_option1, node->m_key2) > abs(key2_option2, node->m_key2))
-        {
-            return option2;
-        }
-        else
-        {
-            if (abs(key3_option1, node->m_key3) < abs(key3_option2, node->m_key3))
-            {
-                return option1;
-            }
-            else if (abs(key3_option1, node->m_key3) > abs(key3_option2, node->m_key3))
-            {
-                return option2;
-            }
-            else
-            {
-                if (key3_option1 < key3_option2){
-                    return option2
-                }
-                return option1;
-            }
-        }
-    }
-}
-*/
 
 template <class T>
 int AVLtree<T>::inOrderVisitUnite(Node<T> *node, Node<T> **array, int start_index)
@@ -927,7 +818,7 @@ Node<T> *AVLtree<T>::arrayToTree(Node<T> **array, int start, int end)
     int middle = (start + end) / 2;
     try
     {
-        Node<T> *curr = new Node<T>(array[mid]->m_element, array[mid]->m_key1, array[mid]->m_key2, array[mid]->m_key3);
+        Node<T> *curr = new Node<T>(array[middle]->m_element, array[middle]->m_key1, array[middle]->m_key2, array[middle]->m_key3);
     }
 
     catch (std::bad_alloc)
@@ -935,8 +826,8 @@ Node<T> *AVLtree<T>::arrayToTree(Node<T> **array, int start, int end)
         return StatusType::ALLOCATION_ERROR;
     }
 
-    curr->m_left_son = arrayToTree(array, start, mid - 1);
-    curr->m_right_son = arrayToTree(array, mid + 1, end);
+    curr->m_left_son = arrayToTree(array, start, middle - 1);
+    curr->m_right_son = arrayToTree(array, middle + 1, end);
     if (!curr->m_left_son){
         curr->m_left_son->m_parent = curr;
     }
