@@ -581,8 +581,13 @@ StatusType world_cup_t::unite_teams(int teamId1, int teamId2, int newTeamId)
 	newTeam->m_element.m_tree_players_in_team_by_id->merge(arrayPlayersID1, arrayPlayersID2, mergeArrayID, numPlayersTeam1, numPlayersTeam2);
 	newTeam->m_element.m_tree_players_in_team_by_score->merge(arrayPlayersScore1, arrayPlayersScore2, mergeArrayScore, numPlayersTeam1, numPlayersTeam2);
 
+	try{
 	newTeam->m_element.m_tree_players_in_team_by_id->m_root = newTeam->m_element.m_tree_players_in_team_by_id->arrayToTree(mergeArrayID, 0, (numPlayersTeam1) + (numPlayersTeam2)-1);
 	newTeam->m_element.m_tree_players_in_team_by_score->m_root = newTeam->m_element.m_tree_players_in_team_by_score->arrayToTree(mergeArrayScore, 0, (numPlayersTeam1) + (numPlayersTeam2)-1);
+	}
+	catch(std::bad_alloc &){
+		return StatusType::ALLOCATION_ERROR;
+	}
 
 	// insert the new united team into the ready teams tree if needed
 	if (!oneOrBothTeamsWasReady && newTeam->m_element.check_team_ready())

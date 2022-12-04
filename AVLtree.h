@@ -79,8 +79,8 @@ public:
     Node<T> *RotateRL(Node<T> *node);
     Node<T> *RotateLR(Node<T> *node);
     Node<T> *deleteNode(Node<T> *node, int key1, int key2, int key3);
-    Node<T> *AVLtree<T>::minValueNode(Node<T> *node);
-    Node<T> *AVLtree<T>::maxValueNode(Node<T> *node);
+    Node<T> minValueNode(Node<T> *node);
+    Node<T> maxValueNode(Node<T> *node);
     int inOrderVisit(Node<T> *node, int *const array, int start_index);
     int inOrderVisitBetweenRange(Node<T> *node, Node<T> **const array, int start_index, int minRange, int maxRange);
     int inOrderVisitUnite(Node<T> *node, Node<T> **array, int start_index);
@@ -214,7 +214,7 @@ Node<T> *AVLtree<T>::insertNode(Node<T> *root, int key1, int key2, int key3, con
 {
     if (root == nullptr)
     {
-        root = new Node<T>(T, key1, key2, key3);
+        root = new Node<T>(data_element, key1, key2, key3);
         if (this->m_heighest_key1 < key1 || (this->m_heighest_key1 == key1 && this->m_heighest_key2 > key2) ||
             (this->m_heighest_key1 == key1 && this->m_heighest_key2 == key2 && this->m_heighest_key3 < key3))
         {
@@ -295,22 +295,22 @@ Node<T> *AVLtree<T>::insertNode(Node<T> *root, int key1, int key2, int key3, con
                              calcHeight(root->m_right_son));
 
     int balance_factor = getBalance(root);
-    if (balance_factor == 2 && getBalance(node->m_left_son) == 1)
+    if (balance_factor == 2 && getBalance(root->m_left_son) == 1)
     {
         // LL ROTATION
         return RotateLL(root)
     }
-    else if (balance_factor == -2 && getBalance(node->m_right_son) == -1)
+    else if (balance_factor == -2 && getBalance(root->m_right_son) == -1)
     {
         // RR ROTATION
         return RotateRR(root);
     }
-    else if (balance_factor == -2 && getBalance(node->m_right_son) == 1)
+    else if (balance_factor == -2 && getBalance(root->m_right_son) == 1)
     {
         // RL ROTATION
         return RotateRL(root);
     }
-    else if (balance_factor == 2 && getBalance(node->m_left_son) == -1)
+    else if (balance_factor == 2 && getBalance(root->m_left_son) == -1)
     {
         // LR ROTATION
         return RotateLR(root);
@@ -726,7 +726,7 @@ int AVLtree<T>::inOrderVisitUnite(Node<T> *node, Node<T> **array, int start_inde
         return start_index;
     }
     int index_after_left_visit = inOrderVisitUnite(node->m_left_son, array, start_index);
-    array[index_after_left_visit] = new Node<T>*(node->m_element,node->m_key1,node->m_key2, node->m_key3);
+    array[index_after_left_visit] = new Node<T>(node->m_element,node->m_key1,node->m_key2, node->m_key3);
     int index_after_right_visit = inOrderVisit(node->m_right_son, array, index_after_left_visit + 1);
     delete node;
     return index_after_right_visit;
@@ -823,7 +823,7 @@ Node<T> *AVLtree<T>::arrayToTree(Node<T> **array, int start, int end)
 
     catch (std::bad_alloc)
     {
-        return StatusType::ALLOCATION_ERROR;
+        throw;
     }
 
     curr->m_left_son = arrayToTree(array, start, middle - 1);

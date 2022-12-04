@@ -17,7 +17,7 @@
 
 #include <cmath>
 #include "wet1util.h"
-#include "AVLTree.h"
+#include "AVLtree.h"
 #include "player.h"
 #include "ready_team.h"
 
