@@ -28,20 +28,21 @@ public:
     Node<T> *m_left_son;
     Node<T> *m_right_son;
 
-    bool operator==(const Node &other) const;
+    //bool operator==(const Node &other) const;
     Node(const T &data_element, int key1 = -1, int key2 = -1, int key3 = -1, int height = 0, Node<T> *parent = nullptr, Node<T> *left_son = nullptr,
          Node<T> *right_son = nullptr);
     ~Node();
-    bool Node<T>::operator==(const Node &other) const;
+   // bool Node<T>::operator==(const Node &other) const;
 };
 
 /**************Node functions*****************/
+/*
 template <class T>
 bool Node<T>::operator==(const Node &other) const
 {
     return m_key1 == other.m_key1;
 }
-
+*/
 template <class T>
 Node<T>::Node(const T &data_element, int key1, int key2, int key3, int height, Node<T> *parent, Node<T> *left_son,
               Node<T> *right_son) : m_element(data_element), m_key1(key1), m_key2(key2), m_key3(key3), m_height(height), m_parent(parent), m_left_son(left_son), m_right_son(right_son) {}
@@ -79,8 +80,8 @@ public:
     Node<T> *RotateRL(Node<T> *node);
     Node<T> *RotateLR(Node<T> *node);
     Node<T> *deleteNode(Node<T> *node, int key1, int key2, int key3);
-    Node<T> minValueNode(Node<T> *node);
-    Node<T> maxValueNode(Node<T> *node);
+    Node<T>* minValueNode(Node<T> *node);
+    Node<T> *maxValueNode(Node<T> *node);
     int inOrderVisit(Node<T> *node, int *const array, int start_index);
     int inOrderVisitBetweenRange(Node<T> *node, Node<T> **const array, int start_index, int minRange, int maxRange);
     int inOrderVisitUnite(Node<T> *node, Node<T> **array, int start_index);
@@ -128,11 +129,11 @@ Node<T> *AVLtree<T>::clearTree(Node<T> *current_root)
 template <class T>
 int AVLtree<T>::calcHeight(Node<T> *node)
 {
+    int h = 0;
     if (!node)
     {
         return -1;
     }
-    int h = 0;
     else
     {
         if (node->m_left_son && node->m_right_son)
@@ -202,8 +203,7 @@ Node<T> *AVLtree<T>::findNode(Node<T> *root, int key1, int key2, int key3)
     {
         return findNode(root->m_left_son, key1, key2, key3);
     }
-    else
-        (root->m_key1 > key1)
+    else if (root->m_key1 > key1)
         {
             return findNode(root->m_right_son, key1, key2, key3);
         }
@@ -298,7 +298,7 @@ Node<T> *AVLtree<T>::insertNode(Node<T> *root, int key1, int key2, int key3, con
     if (balance_factor == 2 && getBalance(root->m_left_son) == 1)
     {
         // LL ROTATION
-        return RotateLL(root)
+        return RotateLL(root);
     }
     else if (balance_factor == -2 && getBalance(root->m_right_son) == -1)
     {
@@ -517,7 +517,7 @@ Node<T> *AVLtree<T>::deleteNode(Node<T> *root, int key1, int key2, int key3) // 
                     }
                     else if (temp->m_right_son == nullptr)
                     {
-                        root = root->m_left_son
+                        root = root->m_left_son;
                     }
                     if (!root)
                     {
@@ -532,22 +532,22 @@ Node<T> *AVLtree<T>::deleteNode(Node<T> *root, int key1, int key2, int key3) // 
     }
 
     int balance_factor = getBalance(root);
-    if (balance_factor == 2 && getBalance(node->m_left_son) == 1)
+    if (balance_factor == 2 && getBalance(root->m_left_son) == 1)
     {
         // LL ROTATION
-        return RotateLL(root)
+        return RotateLL(root);
     }
-    else if (balance_factor == -2 && getBalance(node->m_right_son) == -1)
+    else if (balance_factor == -2 && getBalance(root->m_right_son) == -1)
     {
         // RR ROTATION
         return RotateRR(root);
     }
-    else if (balance_factor == -2 && getBalance(node->m_right_son) == 1)
+    else if (balance_factor == -2 && getBalance(root->m_right_son) == 1)
     {
         // RL ROTATION
         return RotateRL(root);
     }
-    else if (balance_factor == 2 && getBalance(node->m_left_son) == -1)
+    else if (balance_factor == 2 && getBalance(root->m_left_son) == -1)
     {
         // LR ROTATION
         return RotateLR(root);
@@ -595,7 +595,7 @@ int AVLtree<T>::inOrderVisitBetweenRange(Node<T> *node, Node<T> **const array, i
         if (node->m_key1 >= minRange && node->m_key1 <= maxRange)
         {
             array[index] = node;
-            index++
+            index++;
         }
         if (node->m_key1 < maxRange)
         {
@@ -617,7 +617,7 @@ Node<T> *AVLtree<T>::closestHeigherNode(Node<T> *node)
         // this node doesnt have a parent or a right son - there is no heigher value node in the tree
         return nullptr;
     }
-    if (node->m_parent && node->m_right_son == null)
+    if (node->m_parent && node->m_right_son == nullptr)
     {
         // there is a parent and no right son
         if (node->m_key1 == node->m_parent->m_left_son->m_key1 &&
@@ -709,7 +709,7 @@ Node<T> *AVLtree<T>::closerBetweenTwoOptions(Node<T> *node, Node<T> *option1, No
             {
                 if (key3_option1 < key3_option2)
                 {
-                    return option2
+                    return option2;
                 }
                 return option1;
             }
@@ -816,16 +816,11 @@ Node<T> *AVLtree<T>::arrayToTree(Node<T> **array, int start, int end)
         return nullptr;
     }
     int middle = (start + end) / 2;
-    try
-    {
-        Node<T> *curr = new Node<T>(array[middle]->m_element, array[middle]->m_key1, array[middle]->m_key2, array[middle]->m_key3);
-    }
 
-    catch (std::bad_alloc)
-    {
-        throw;
-    }
-
+    Node<T> *curr = new Node<T>(array[middle]->m_element, array[middle]->m_key1, array[middle]->m_key2, array[middle]->m_key3);
+    if (!curr){
+        throw std::bad_alloc;
+    }    
     curr->m_left_son = arrayToTree(array, start, middle - 1);
     curr->m_right_son = arrayToTree(array, middle + 1, end);
     if (!curr->m_left_son){

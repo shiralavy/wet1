@@ -5,6 +5,7 @@
 #include "AVLtree.h"
 #include "team.h"
 
+
 class ready_team {
 
     public:
