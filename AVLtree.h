@@ -53,7 +53,7 @@ Node<T>::~Node()
     delete m_left_son;
     delete m_right_son;
     m_parent = nullptr;
-    delete m_parent;
+    //delete m_parent;
 }
 
 /**************end of Node functions*******/

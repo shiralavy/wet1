@@ -747,10 +747,11 @@ output_t<int> world_cup_t::knockout_winner(int minTeamId, int maxTeamId)
 	Node<ready_team> *currTeam = this->m_tree_ready_teams->m_root;
 
 	Node<ready_team> **goodTeams = new Node<ready_team> *[this->m_num_good_teams];
+	//int num_teams = this->m_num_good_teams;
 	int numGoodTeams = this->m_tree_ready_teams->inOrderVisitBetweenRange(currTeam, goodTeams, 0, minTeamId, maxTeamId);
 
-	int winning_nums[numGoodTeams];
-	int teams[numGoodTeams];
+	int* winning_nums = new int[numGoodTeams];
+	int* teams = new int[numGoodTeams];
 
 	// fill winning nums and teams arrays
 	for (int i = 0; i < numGoodTeams; i++)
@@ -765,7 +766,10 @@ output_t<int> world_cup_t::knockout_winner(int minTeamId, int maxTeamId)
 	{
 		if (size == 1)
 		{
-			return teams[0];
+			delete[] winning_nums;
+			int id = teams[0];
+			delete[] teams;
+			return id;
 		}
 		for (int i = 0; i < size; i += 2)
 		{
@@ -792,6 +796,8 @@ output_t<int> world_cup_t::knockout_winner(int minTeamId, int maxTeamId)
 			}
 		}
 	}
+	delete[] winning_nums;
+	delete[] teams;
 
-	return 2;
+	return -1;
 }
