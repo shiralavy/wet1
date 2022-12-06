@@ -57,7 +57,7 @@ StatusType world_cup_t::add_player(int playerId, Node<Team> *team, int gamesPlay
 			insertedPlayer->m_element.m_player_in_scoreboard = insertedPlayerByScore;
 
 			// update next and prev players by score
-			insertedPlayerByScore->m_element.m_next_player_by_score = this->m_tree_players_by_score->closestHeigherNode(insertedPlayerByScore);
+			insertedPlayerByScore->m_element.m_next_player_by_score = this->m_tree_players_by_score->closestHigherNode(insertedPlayerByScore);
 			insertedPlayerByScore->m_element.m_prev_player_by_score = this->m_tree_players_by_score->closestLowerNode(insertedPlayerByScore);
 
 			// update the next and prev for the players that were affected
@@ -69,7 +69,7 @@ StatusType world_cup_t::add_player(int playerId, Node<Team> *team, int gamesPlay
 			return StatusType::ALLOCATION_ERROR;
 		}
 	}
-	this->m_best_player = this->m_tree_players_by_score->m_heighest_key3;
+	this->m_best_player = this->m_tree_players_by_score->m_highest_key3;
 	this->m_num_players++;
 	return StatusType::SUCCESS;
 }
@@ -92,7 +92,7 @@ StatusType world_cup_t::remove_player_except_from_tree_ready_teams(int playerId)
 	// first we update the next and prev values of the players that pointed to this player
 	Node<player_in_scoreboard> *playerToRemoveByScore = playerToRemove->m_element.m_player_in_scoreboard;
 	Node<player_in_scoreboard> *nextPlayer = playerToRemoveByScore->m_element.m_next_player_by_score;
-	Node<player_in_scoreboard> *prevPlayer = playerToRemoveByScore->m_element.m_next_player_by_score;
+	Node<player_in_scoreboard> *prevPlayer = playerToRemoveByScore->m_element.m_prev_player_by_score;
 	prevPlayer->m_element.m_next_player_by_score = nextPlayer;
 	nextPlayer->m_element.m_prev_player_by_score = prevPlayer;
 
@@ -117,7 +117,7 @@ StatusType world_cup_t::remove_player_except_from_tree_ready_teams(int playerId)
 	// delete from tree of all players by playerId
 	this->m_tree_players_by_id->deleteNode(this->m_tree_players_by_id->m_root, playerId, 0, 0);
 
-	this->m_best_player = this->m_tree_players_by_score->m_heighest_key3;
+	this->m_best_player = this->m_tree_players_by_score->m_highest_key3;
 	this->m_num_players--;
 	return StatusType::SUCCESS;
 }
@@ -260,7 +260,7 @@ StatusType world_cup_t::add_player(int playerId, int teamId, int gamesPlayed,
 
 			// update the pointers of player in big AVL TREE to its locations in the team
 			insertedPlayer->m_element.m_player_in_team_by_score = teamForNewPlayer->m_element.m_tree_players_in_team_by_score->findNode(teamForNewPlayer->m_element.m_tree_players_in_team_by_score->m_root, goals, cards, playerId);
-			insertedPlayer->m_element.m_player_in_team_by_id = teamForNewPlayer->m_element.m_tree_players_in_team_by_id->findNode(teamForNewPlayer->m_element.m_tree_players_in_team_by_score->m_root, playerId, 0, 0);
+			insertedPlayer->m_element.m_player_in_team_by_id = teamForNewPlayer->m_element.m_tree_players_in_team_by_id->findNode(teamForNewPlayer->m_element.m_tree_players_in_team_by_id->m_root, playerId, 0, 0);
 
 			// if after the insertion of the player this team has now become ready, insert this team into the AVL TREE with ready teams
 			bool teamWasReady = teamForNewPlayer->m_element.check_team_ready();
@@ -287,7 +287,7 @@ StatusType world_cup_t::add_player(int playerId, int teamId, int gamesPlayed,
 			insertedPlayer->m_element.m_player_in_scoreboard = insertedPlayerByScore;
 
 			// update next and prev players by score
-			insertedPlayerByScore->m_element.m_next_player_by_score = this->m_tree_players_by_score->closestHeigherNode(insertedPlayerByScore);
+			insertedPlayerByScore->m_element.m_next_player_by_score = this->m_tree_players_by_score->closestHigherNode(insertedPlayerByScore);
 			insertedPlayerByScore->m_element.m_prev_player_by_score = this->m_tree_players_by_score->closestLowerNode(insertedPlayerByScore);
 
 			// update the next and prev for the players that were affected
@@ -304,7 +304,7 @@ StatusType world_cup_t::add_player(int playerId, int teamId, int gamesPlayed,
 			return StatusType::ALLOCATION_ERROR;
 		}
 	}
-	this->m_best_player = this->m_tree_players_by_score->m_heighest_key3;
+	this->m_best_player = this->m_tree_players_by_score->m_highest_key3;
 	this->m_num_players++;
 	return StatusType::SUCCESS;
 }
@@ -367,7 +367,7 @@ StatusType world_cup_t::remove_player(int playerId)
 	// delete from tree of all players by playerId
 	this->m_tree_players_by_id->deleteNode(this->m_tree_players_by_id->m_root, playerId, 0, 0);
 
-	this->m_best_player = this->m_tree_players_by_score->m_heighest_key3;
+	this->m_best_player = this->m_tree_players_by_score->m_highest_key3;
 	this->m_num_players--;
 	return StatusType::SUCCESS;
 }
@@ -607,13 +607,13 @@ StatusType world_cup_t::unite_teams(int teamId1, int teamId2, int newTeamId)
 	}
 
 	// update the heighest key in each tree of players
-	newTeam->m_element.m_tree_players_in_team_by_id->m_heighest_key1 = mergeArrayID[(numPlayersTeam1) + (numPlayersTeam2)-1]->m_key1;
-	newTeam->m_element.m_tree_players_in_team_by_id->m_heighest_key2 = mergeArrayID[(numPlayersTeam1) + (numPlayersTeam2)-1]->m_key2;
-	newTeam->m_element.m_tree_players_in_team_by_id->m_heighest_key3 = mergeArrayID[(numPlayersTeam1) + (numPlayersTeam2)-1]->m_key3;
+	newTeam->m_element.m_tree_players_in_team_by_id->m_highest_key1 = mergeArrayID[(numPlayersTeam1) + (numPlayersTeam2)-1]->m_key1;
+	newTeam->m_element.m_tree_players_in_team_by_id->m_highest_key2 = mergeArrayID[(numPlayersTeam1) + (numPlayersTeam2)-1]->m_key2;
+	newTeam->m_element.m_tree_players_in_team_by_id->m_highest_key3 = mergeArrayID[(numPlayersTeam1) + (numPlayersTeam2)-1]->m_key3;
 
-	newTeam->m_element.m_tree_players_in_team_by_score->m_heighest_key1 = mergeArrayScore[(numPlayersTeam1) + (numPlayersTeam2)-1]->m_key1;
-	newTeam->m_element.m_tree_players_in_team_by_score->m_heighest_key2 = mergeArrayScore[(numPlayersTeam1) + (numPlayersTeam2)-1]->m_key2;
-	newTeam->m_element.m_tree_players_in_team_by_score->m_heighest_key3 = mergeArrayScore[(numPlayersTeam1) + (numPlayersTeam2)-1]->m_key3;
+	newTeam->m_element.m_tree_players_in_team_by_score->m_highest_key1 = mergeArrayScore[(numPlayersTeam1) + (numPlayersTeam2)-1]->m_key1;
+	newTeam->m_element.m_tree_players_in_team_by_score->m_highest_key2 = mergeArrayScore[(numPlayersTeam1) + (numPlayersTeam2)-1]->m_key2;
+	newTeam->m_element.m_tree_players_in_team_by_score->m_highest_key3 = mergeArrayScore[(numPlayersTeam1) + (numPlayersTeam2)-1]->m_key3;
 
 	delete[] arrayPlayersID1;
 	delete[] arrayPlayersID2;
@@ -659,7 +659,7 @@ output_t<int> world_cup_t::get_top_scorer(int teamId)
 			return StatusType::FAILURE;
 		}
 		// returning best player in the tournament
-		return this->m_tree_players_by_score->m_heighest_key3;
+		return this->m_tree_players_by_score->m_highest_key3;
 	}
 	else
 	{
@@ -670,7 +670,7 @@ output_t<int> world_cup_t::get_top_scorer(int teamId)
 			return StatusType::FAILURE;
 		}
 		// returning best player in the team
-		return currentTeam->m_element.m_tree_players_in_team_by_score->m_heighest_key3;
+		return currentTeam->m_element.m_tree_players_in_team_by_score->m_highest_key3;
 	}
 	return StatusType::FAILURE;
 }

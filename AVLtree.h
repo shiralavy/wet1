@@ -183,20 +183,20 @@ Node<T> *AVLtree<T>::findNode(Node<T> *root, int key1, int key2, int key3)
             }
             else if (root->m_key3 < key3)
             {
-                findNode(root->m_right_son, key1, key2, key3);
+                return findNode(root->m_right_son, key1, key2, key3);
             }
             else
             {
-                findNode(root->m_left_son, key1, key2, key3);
+                return findNode(root->m_left_son, key1, key2, key3);
             }
         }
         else if (root->m_key2 < key2)
         {
-            findNode(root->m_left_son, key1, key2, key3);
+            return findNode(root->m_left_son, key1, key2, key3);
         }
         else
         {
-            findNode(root->m_right_son, key1, key2, key3);
+            return findNode(root->m_right_son, key1, key2, key3);
         }
     }
     else if (root->m_key1 < key1)
@@ -216,10 +216,10 @@ Node<T> *AVLtree<T>::insertNode(Node<T> *root, int key1, int key2, int key3, con
     if (root == nullptr)
     {
         root = new Node<T>(data_element, key1, key2, key3);
-        if (this-m_highest_key1 < key1 || (this-m_highest_key1 == key1 && this->m_highest_key2 > key2) ||
-            (this-m_highest_key1 == key1 && this->m_highest_key2 == key2 && this->m_highest_key3 < key3))
+        if (this->m_highest_key1 < key1 || (this->m_highest_key1 == key1 && this->m_highest_key2 > key2) ||
+            (this->m_highest_key1 == key1 && this->m_highest_key2 == key2 && this->m_highest_key3 < key3))
         {
-            this-m_highest_key1 = key1;
+            this->m_highest_key1 = key1;
             this->m_highest_key2 = key2;
             this->m_highest_key3 = key3;
         }
@@ -248,7 +248,7 @@ Node<T> *AVLtree<T>::insertNode(Node<T> *root, int key1, int key2, int key3, con
         if (key2 < root->m_key2)
         {
             Node<T> *new_right = insertNode(root->m_right_son, key1, key2, key3, data_element);
-            if (!new_right)
+            if (new_right)
             {
                 new_right->m_parent = root;
             }
@@ -257,7 +257,7 @@ Node<T> *AVLtree<T>::insertNode(Node<T> *root, int key1, int key2, int key3, con
         else if (key2 > root->m_key2)
         {
             Node<T> *new_left = insertNode(root->m_left_son, key1, key2, key3, data_element);
-            if (!new_left)
+            if (new_left)
             {
                 new_left->m_parent = root;
             }
@@ -268,7 +268,7 @@ Node<T> *AVLtree<T>::insertNode(Node<T> *root, int key1, int key2, int key3, con
             if (key3 < root->m_key3)
             {
                 Node<T> *new_left = insertNode(root->m_left_son, key1, key2, key3, data_element);
-                if (!new_left)
+                if (new_left)
                 {
                     new_left->m_parent = root;
                 }
@@ -277,7 +277,7 @@ Node<T> *AVLtree<T>::insertNode(Node<T> *root, int key1, int key2, int key3, con
             else if (key3 > root->m_key3)
             {
                 Node<T> *new_right = insertNode(root->m_right_son, key1, key2, key3, data_element);
-                if (!new_right)
+                if (new_right)
                 {
                     new_right->m_parent = root;
                 }
@@ -285,10 +285,10 @@ Node<T> *AVLtree<T>::insertNode(Node<T> *root, int key1, int key2, int key3, con
             }
         }
     }
-    if (this-m_highest_key1 < key1 || (this-m_highest_key1 == key1 && this->m_highest_key2 > key2) ||
-        (this-m_highest_key1 == key1 && this->m_highest_key2 == key2 && this->m_highest_key3 < key3))
+    if (this->m_highest_key1 < key1 || (this->m_highest_key1 == key1 && this->m_highest_key2 > key2) ||
+        (this->m_highest_key1 == key1 && this->m_highest_key2 == key2 && this->m_highest_key3 < key3))
     {
-        this-m_highest_key1 = key1;
+        this->m_highest_key1 = key1;
         this->m_highest_key2 = key2;
         this->m_highest_key3 = key3;
     }
@@ -334,15 +334,16 @@ Node<T> *AVLtree<T>::RotateLL(Node<T> *node)
     new_root->m_right_son = temp;
     new_root->m_parent = temp->m_parent;
     temp->m_parent = new_root;
-    new_root->m_left_son->m_parent = new_root;
-
+    if (new_root->m_left_son) {
+        new_root->m_left_son->m_parent = new_root;
+    }
     if (new_root->m_parent) {
-        if ((new_root->m_parent->m_right_son->m_key1 == temp->m_key1) &&
-            (new_root->m_parent->m_right_son->m_key2 == temp->m_key2) &&
-            (new_root->m_parent->m_right_son->m_key3 == temp->m_key3)) {
-            new_root->m_parent->m_right_son = new_root;
-        } else {
+        if ((new_root->m_key1 < new_root->m_parent->m_key1) ||
+            (new_root->m_key1 == new_root->m_parent->m_key1 && new_root->m_key2 > new_root->m_parent->m_key2) ||
+            (new_root->m_key1 == new_root->m_parent->m_key1 && new_root->m_key2 == new_root->m_parent->m_key2 && new_root->m_key3 < new_root->m_parent->m_key3)) {
             new_root->m_parent->m_left_son = new_root;
+        } else {
+            new_root->m_parent->m_right_son = new_root;
         }
     }
     new_root->m_right_son->m_height = 1 + max(calcHeight(new_root->m_right_son->m_left_son),
@@ -369,16 +370,18 @@ Node<T> *AVLtree<T>::RotateRR(Node<T> *node)
     new_root->m_left_son = temp;
     new_root->m_parent = temp->m_parent;
     temp->m_parent = new_root;
-    new_root->m_right_son->m_parent = new_root;
+    if (new_root->m_right_son) {
+        new_root->m_right_son->m_parent = new_root;
+    }
     //new_root->m_left_son = temp;
 
     if (new_root->m_parent) {
-        if ((new_root->m_parent->m_right_son->m_key1 == temp->m_key1) &&
-            (new_root->m_parent->m_right_son->m_key2 == temp->m_key2) &&
-            (new_root->m_parent->m_right_son->m_key3 == temp->m_key3)) {
-            new_root->m_parent->m_right_son = new_root;
-        } else {
+        if ((new_root->m_key1 < new_root->m_parent->m_key1) ||
+            (new_root->m_key1 == new_root->m_parent->m_key1 && new_root->m_key2 > new_root->m_parent->m_key2) ||
+            (new_root->m_key1 == new_root->m_parent->m_key1 && new_root->m_key2 == new_root->m_parent->m_key2 && new_root->m_key3 < new_root->m_parent->m_key3)) {
             new_root->m_parent->m_left_son = new_root;
+        } else {
+            new_root->m_parent->m_right_son = new_root;
         }
     }
 
@@ -625,9 +628,9 @@ Node<T> *AVLtree<T>::closestHigherNode(Node<T> *node)
     if (node->m_parent && node->m_right_son == nullptr)
     {
         // there is a parent and no right son
-        if (node->m_key1 == node->m_parent->m_left_son->m_key1 &&
-            node->m_key2 == node->m_parent->m_left_son->m_key2 &&
-            node->m_key3 == node->m_parent->m_left_son->m_key3)
+        if ((node->m_key1 < node->m_parent->m_key1) ||
+        (node->m_key1 == node->m_parent->m_key1 && node->m_key2 > node->m_parent->m_key2) ||
+        (node->m_key1 == node->m_parent->m_key1 && node->m_key2 == node->m_parent->m_key2 && node->m_key3 < node->m_parent->m_key3))
         {
             // this node is the left son of the parent, so the parent is bigger
             return node->m_parent;
@@ -656,9 +659,9 @@ Node<T> *AVLtree<T>::closestLowerNode(Node<T> *node)
     if (node->m_parent && node->m_left_son == nullptr)
     {
         // there is a parent and no left son
-        if (node->m_key1 == node->m_parent->m_right_son->m_key1 &&
-            node->m_key2 == node->m_parent->m_right_son->m_key2 &&
-            node->m_key3 == node->m_parent->m_right_son->m_key3)
+        if (node->m_key1 > node->m_parent->m_key1 ||
+           (node->m_key1 == node->m_parent->m_key1 && node->m_key2 < node->m_parent->m_key2) ||
+           (node->m_key1 == node->m_parent->m_key1 && node->m_key2 == node->m_parent->m_key2 && node->m_key3 > node->m_parent->m_key3))
         {
             // this node is the right son of the parent, so the parent is smaller
             return node->m_parent;
