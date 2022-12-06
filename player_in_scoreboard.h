@@ -9,6 +9,7 @@
 
 using namespace std;
 
+
 class player_in_scoreboard {
     public:
     int m_player_id;
@@ -52,9 +53,9 @@ class player_in_scoreboard {
         m_prev_player_by_score = nullptr;
         m_next_player_by_score = nullptr;
         m_player = nullptr;
-        delete m_player;
-        delete m_prev_player_by_score;
-        delete m_next_player_by_score;
+      //  delete m_player;
+      //  delete m_prev_player_by_score;
+      //  delete m_next_player_by_score;
     }
 };
 

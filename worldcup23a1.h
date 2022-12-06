@@ -17,9 +17,11 @@
 
 #include <cmath>
 #include "wet1util.h"
-#include "AVLtree.h"
+//#include "AVLtree.h"
 #include "player.h"
-#include "ready_team.h"
+//#include "ready_team.h"
+#include "team.h"
+//#include "player_in_scoreboard.h"
 
 
 class world_cup_t {

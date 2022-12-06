@@ -1,10 +1,12 @@
-#ifndef PLAYERS_IN_TEAM_H_
-#define PLAYERS_IN_TEAM_H_
+#ifndef PLAYER_IN_TEAM_H_
+#define PLAYER_IN_TEAM_H_
 
 #include <stdexcept>
 //#include <memory>
 #include "player.h"
 #include "AVLtree.h"
+
+
 
 
 using namespace std;
@@ -45,10 +47,10 @@ class player_in_team {
     ~player_in_team(){
         m_player = nullptr;
         m_my_team = nullptr;
-        delete m_player;
-        delete m_my_team;
+      //  delete m_player;
+       // delete m_my_team;
     }
 
 };
 
-#endif //PLAYERS_IN_TEAM_H_
+#endif //PLAYER_IN_TEAM_H_

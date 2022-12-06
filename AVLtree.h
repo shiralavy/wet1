@@ -19,20 +19,20 @@ template <class T>
 class Node
 {
 public:
+    T m_element;
     int m_key1;
     int m_key2;
     int m_key3;
     int m_height;
-    T m_element;
     Node<T> *m_parent;
     Node<T> *m_left_son;
     Node<T> *m_right_son;
 
-    //bool operator==(const Node &other) const;
+    // bool operator==(const Node &other) const;
     Node(const T &data_element, int key1 = -1, int key2 = -1, int key3 = -1, int height = 0, Node<T> *parent = nullptr, Node<T> *left_son = nullptr,
          Node<T> *right_son = nullptr);
     ~Node();
-   // bool Node<T>::operator==(const Node &other) const;
+    // bool Node<T>::operator==(const Node &other) const;
 };
 
 /**************Node functions*****************/
@@ -80,7 +80,7 @@ public:
     Node<T> *RotateRL(Node<T> *node);
     Node<T> *RotateLR(Node<T> *node);
     Node<T> *deleteNode(Node<T> *node, int key1, int key2, int key3);
-    Node<T>* minValueNode(Node<T> *node);
+    Node<T> *minValueNode(Node<T> *node);
     Node<T> *maxValueNode(Node<T> *node);
     int inOrderVisit(Node<T> *node, int *const array, int start_index);
     int inOrderVisitBetweenRange(Node<T> *node, Node<T> **const array, int start_index, int minRange, int maxRange);
@@ -88,7 +88,7 @@ public:
     Node<T> *closestHeigherNode(Node<T> *node);
     Node<T> *closestLowerNode(Node<T> *node);
     Node<T> *closerBetweenTwoOptions(Node<T> *node, Node<T> *option1, Node<T> *option2);
-    Node<T> *merge(Node<T> **array1, Node<T> **array2, Node<T> **mergedArray, int size1, int size2);
+    void merge(Node<T> **array1, Node<T> **array2, Node<T> **mergedArray, int size1, int size2);
     Node<T> *arrayToTree(Node<T> **array, int start, int end);
 
     int max(int a, int b)
@@ -204,9 +204,10 @@ Node<T> *AVLtree<T>::findNode(Node<T> *root, int key1, int key2, int key3)
         return findNode(root->m_left_son, key1, key2, key3);
     }
     else if (root->m_key1 > key1)
-        {
-            return findNode(root->m_right_son, key1, key2, key3);
-        }
+    {
+        return findNode(root->m_right_son, key1, key2, key3);
+    }
+    return nullptr;
 }
 
 template <class T>
@@ -502,7 +503,7 @@ Node<T> *AVLtree<T>::deleteNode(Node<T> *root, int key1, int key2, int key3) // 
                     root->m_key3 = new_root->m_key3;
                     root->m_element = new_root->m_element;
                     // now we delete the original node that was copied to become the root, we dont need it anymore because we copied it's values
-                    root->m_right_node = deleteNode(root->m_right_son, root->m_key1, root->m_key2, root->m_key3);
+                    root->m_right_son = deleteNode(root->m_right_son, root->m_key1, root->m_key2, root->m_key3);
                     if (!root->m_right_son)
                     {
                         root->m_right_son->m_parent = root;
@@ -590,7 +591,7 @@ int AVLtree<T>::inOrderVisitBetweenRange(Node<T> *node, Node<T> **const array, i
         int index = start_index;
         if (node->m_key1 > minRange)
         {
-            index = inOrderVisit(node->m_left_son, array, start_index);
+            index = inOrderVisitBetweenRange(node->m_left_son, array, start_index, minRange, maxRange);
         }
         if (node->m_key1 >= minRange && node->m_key1 <= maxRange)
         {
@@ -599,7 +600,7 @@ int AVLtree<T>::inOrderVisitBetweenRange(Node<T> *node, Node<T> **const array, i
         }
         if (node->m_key1 < maxRange)
         {
-            index = inOrderVisit(node->m_right_son, array, index);
+            index = inOrderVisitBetweenRange(node->m_right_son, array, index,minRange, maxRange);
         }
         return index;
     }
@@ -633,6 +634,7 @@ Node<T> *AVLtree<T>::closestHeigherNode(Node<T> *node)
         // there is a right son and a parent or only a right son and no parent, either way the parent is not the closest heigher
         return minValueNode(node->m_right_son);
     }
+    return nullptr;
 }
 
 template <class T>
@@ -663,6 +665,7 @@ Node<T> *AVLtree<T>::closestLowerNode(Node<T> *node)
         // there is a left son and a parent or only a left son and no parent, either way the parent is not the closest lower
         return maxValueNode(node->m_left_son);
     }
+    return nullptr;
 }
 
 template <class T>
@@ -717,7 +720,6 @@ Node<T> *AVLtree<T>::closerBetweenTwoOptions(Node<T> *node, Node<T> *option1, No
     }
 }
 
-
 template <class T>
 int AVLtree<T>::inOrderVisitUnite(Node<T> *node, Node<T> **array, int start_index)
 {
@@ -726,14 +728,14 @@ int AVLtree<T>::inOrderVisitUnite(Node<T> *node, Node<T> **array, int start_inde
         return start_index;
     }
     int index_after_left_visit = inOrderVisitUnite(node->m_left_son, array, start_index);
-    array[index_after_left_visit] = new Node<T>(node->m_element,node->m_key1,node->m_key2, node->m_key3);
-    int index_after_right_visit = inOrderVisit(node->m_right_son, array, index_after_left_visit + 1);
+    array[index_after_left_visit] = new Node<T>(node->m_element, node->m_key1, node->m_key2, node->m_key3);
+    int index_after_right_visit = inOrderVisitUnite(node->m_right_son, array, index_after_left_visit + 1);
     delete node;
     return index_after_right_visit;
 }
 
 template <class T>
-Node<T> *AVLtree<T>::merge(Node<T> **array1, Node<T> **array2, Node<T> **mergedArray, int size1, int size2)
+void AVLtree<T>::merge(Node<T> **array1, Node<T> **array2, Node<T> **mergedArray, int size1, int size2)
 {
 
     int i = 0, j = 0, k = 0;
@@ -804,7 +806,8 @@ Node<T> *AVLtree<T>::merge(Node<T> **array1, Node<T> **array2, Node<T> **mergedA
         j++;
         k++;
     }
-    return mergedArray;
+    return;
+    //return mergedArray;
 }
 
 /* check with shira */
@@ -818,16 +821,15 @@ Node<T> *AVLtree<T>::arrayToTree(Node<T> **array, int start, int end)
     int middle = (start + end) / 2;
 
     Node<T> *curr = new Node<T>(array[middle]->m_element, array[middle]->m_key1, array[middle]->m_key2, array[middle]->m_key3);
-    if (!curr){
-        throw std::bad_alloc;
-    }    
     curr->m_left_son = arrayToTree(array, start, middle - 1);
     curr->m_right_son = arrayToTree(array, middle + 1, end);
-    if (!curr->m_left_son){
+    if (!curr->m_left_son)
+    {
         curr->m_left_son->m_parent = curr;
     }
-    if (!curr->m_right_son){
-            curr->m_right_son->m_parent = curr;
+    if (!curr->m_right_son)
+    {
+        curr->m_right_son->m_parent = curr;
     }
     return curr;
 }

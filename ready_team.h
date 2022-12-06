@@ -3,7 +3,8 @@
 
 #include <stdexcept>
 #include "AVLtree.h"
-#include "team.h"
+#include "player.h"
+//#include "team.h"
 
 
 class ready_team {
@@ -29,12 +30,8 @@ class ready_team {
 
     ~ready_team(){
         m_team = nullptr;
-        delete m_team;
+        //delete m_team;
     };
-
-
-
-
 };
 
 #endif //READY_TEAM_H_

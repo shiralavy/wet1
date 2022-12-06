@@ -40,11 +40,13 @@ class Team {
     * ~Team: destructor for Team
     ***********************************************************/
 
-    ~Team(){
-        std::cout << "Dtor for Team called" << std::endl;
-        delete m_tree_players_in_team_by_score;
-        delete m_tree_players_in_team_by_id;
+    ~Team() = default;
+    /*{
+      //  std::cout << "Dtor for Team called" << std::endl;
+      //  delete m_tree_players_in_team_by_score;
+      //  delete m_tree_players_in_team_by_id;
     }; 
+    */
 
     bool check_team_ready()
     {
@@ -53,6 +55,33 @@ class Team {
         }
         return false;
     }
+};
+
+class ready_team {
+
+    public:
+    int m_team_id;
+    //int m_points;
+    //bool m_ready_to_play; //boolean value if this team is ready to play (has 11 players and one goalkeeper)
+    Node<Team>* m_team; 
+
+    /***********************************************************
+         * ready_team: constructor for ready_team
+         * 
+         * @param m_team_id the team's team
+         * @param m_team the corresponding team
+    ***********************************************************/
+
+    ready_team(int team_id, Node<Team>* team = nullptr) : m_team_id(team_id), m_team(team){};
+
+    /***********************************************************
+    * ~ready_team: destructor for ready_team
+    ***********************************************************/
+
+    ~ready_team(){
+        m_team = nullptr;
+        //delete m_team;
+    };
 };
 
 #endif //TEAMS_H_

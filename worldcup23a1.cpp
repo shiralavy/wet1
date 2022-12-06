@@ -30,9 +30,13 @@ StatusType world_cup_t::add_player(int playerId, Node<Team> *team, int gamesPlay
 
 			// insert player into AVL TREE of players inside the appropriate team sorted by score
 			Node<player> *insertedPlayer = this->m_tree_players_by_id->findNode(this->m_tree_players_by_id->m_root, playerId, 0, 0);
-			player_in_team newPlayerInTeamByScore(playerId, team->m_element.m_team_id, insertedPlayer, team);
+			player_in_team newPlayerInTeamByScore(playerId, team->m_element.m_team_id,  insertedPlayer, team);
 			team->m_element.m_tree_players_in_team_by_score->insertNode(team->m_element.m_tree_players_in_team_by_score->m_root, goals, cards, playerId, newPlayerInTeamByScore);
 			team->m_element.m_winning_num = team->m_element.m_winning_num + goals - cards;
+			/*
+			   player_in_team(int player_id, int team_id, Node<player>* player = nullptr, Node<Team>* team = nullptr) : 
+  				  m_player_id(player_id), m_team_id(team_id), m_player(player), m_my_team(team)
+    {};*/
 
 			// insert player into AVL TREE of players inside the appropriate team sorted by id
 			player_in_team newPlayerInTeamByID(playerId, team->m_element.m_team_id, insertedPlayer, team);
@@ -381,7 +385,7 @@ StatusType world_cup_t::update_player_stats(int playerId, int gamesPlayed,
 	int prevCards = playerToUpdate->m_element.m_cards;
 	int prevGoals = playerToUpdate->m_element.m_goals;
 	int prevGamesPlayed = playerToUpdate->m_element.m_games_played;
-	int prevTeamId = playerToUpdate->m_element.m_team_id;
+	//int prevTeamId = playerToUpdate->m_element.m_team_id;
 	bool prevGoalkeeper = playerToUpdate->m_element.m_goalkeeper;
 	Node<Team> *prevTeam = playerToUpdate->m_element.m_player_in_team_by_id->m_element.m_my_team;
 
@@ -724,9 +728,9 @@ output_t<int> world_cup_t::get_closest_player(int playerId, int teamId)
 	}
 	Node<Team> *currentTeam = this->m_tree_teams_by_id->findNode(this->m_tree_teams_by_id->m_root, teamId, 0, 0);
 	Node<player_in_team> *playerInTeamById = currentTeam->m_element.m_tree_players_in_team_by_id->findNode(currentTeam->m_element.m_tree_players_in_team_by_id->m_root, playerId, 0, 0);
-	int goals = playerInTeamById->m_element.m_player->m_element.m_goals;
-	int cards = playerInTeamById->m_element.m_player->m_element.m_cards;
-	Node<player_in_team> *playerInTeamByScore = currentTeam->m_element.m_tree_players_in_team_by_score->findNode(currentTeam->m_element.m_tree_players_in_team_by_score->m_root, goals, cards, playerId);
+	//int goals = playerInTeamById->m_element.m_player->m_element.m_goals;
+	//int cards = playerInTeamById->m_element.m_player->m_element.m_cards;
+	//Node<player_in_team> *playerInTeamByScore = currentTeam->m_element.m_tree_players_in_team_by_score->findNode(currentTeam->m_element.m_tree_players_in_team_by_score->m_root, goals, cards, playerId);
 
 	Node<player_in_scoreboard> *playerInScoreBoard = playerInTeamById->m_element.m_player->m_element.m_player_in_scoreboard;
 	Node<player_in_scoreboard> *closest = this->m_tree_players_by_score->closerBetweenTwoOptions(playerInScoreBoard, playerInScoreBoard->m_element.m_next_player_by_score, playerInScoreBoard->m_element.m_prev_player_by_score);
@@ -757,8 +761,7 @@ output_t<int> world_cup_t::knockout_winner(int minTeamId, int maxTeamId)
 	// MAKE SURE THIS DOESNT DELETE ALL OF THE VALUES IN THE NODES
 	delete[] goodTeams;
 
-	int size = numGoodTeams;
-	for (size; size > 0; size = std::round(size / 2))
+	for (int size = numGoodTeams; size > 0; size = std::round(size / 2))
 	{
 		if (size == 1)
 		{
