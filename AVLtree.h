@@ -165,7 +165,7 @@ int AVLtree<T>::getBalance(Node<T> *node)
 template <class T>
 Node<T> *AVLtree<T>::findNode(Node<T> *root, int key1, int key2, int key3)
 {
-    if (key1 <= 0)
+    if (key1 < 0)
     {
         return nullptr;
     }
@@ -201,11 +201,11 @@ Node<T> *AVLtree<T>::findNode(Node<T> *root, int key1, int key2, int key3)
     }
     else if (root->m_key1 < key1)
     {
-        return findNode(root->m_left_son, key1, key2, key3);
+        return findNode(root->m_right_son, key1, key2, key3);
     }
     else if (root->m_key1 > key1)
     {
-        return findNode(root->m_right_son, key1, key2, key3);
+        return findNode(root->m_left_son, key1, key2, key3);
     }
     return nullptr;
 }
@@ -223,12 +223,12 @@ Node<T> *AVLtree<T>::insertNode(Node<T> *root, int key1, int key2, int key3, con
             this->m_heighest_key2 = key2;
             this->m_heighest_key3 = key3;
         }
-        return root;
+        //return root;
     }
     if (key1 < root->m_key1)
     {
         Node<T> *new_left = insertNode(root->m_left_son, key1, key2, key3, data_element);
-        if (!new_left)
+        if (new_left)
         {
             new_left->m_parent = root;
         }
@@ -237,7 +237,7 @@ Node<T> *AVLtree<T>::insertNode(Node<T> *root, int key1, int key2, int key3, con
     else if (key1 > root->m_key1)
     {
         Node<T> *new_right = insertNode(root->m_right_son, key1, key2, key3, data_element);
-        if (!new_right)
+        if (new_right)
         {
             new_right->m_parent = root;
         }
@@ -331,17 +331,19 @@ Node<T> *AVLtree<T>::RotateLL(Node<T> *node)
     temp = node;
     new_root = temp->m_left_son;
     temp->m_left_son = new_root->m_right_son;
-    new_root->m_right_son->m_parent = temp;
+    new_root->m_right_son = temp;
     new_root->m_parent = temp->m_parent;
     temp->m_parent = new_root;
-    new_root->m_right_son = temp;
-    if ((new_root->m_parent->m_right_son->m_key1 == temp->m_key1) && (new_root->m_parent->m_right_son->m_key2 == temp->m_key2) && (new_root->m_parent->m_right_son->m_key3 == temp->m_key3))
-    {
-        new_root->m_parent->m_right_son = new_root;
-    }
-    else
-    {
-        new_root->m_parent->m_left_son = new_root;
+    new_root->m_left_son->m_parent = new_root;
+
+    if (new_root->m_parent) {
+        if ((new_root->m_parent->m_right_son->m_key1 == temp->m_key1) &&
+            (new_root->m_parent->m_right_son->m_key2 == temp->m_key2) &&
+            (new_root->m_parent->m_right_son->m_key3 == temp->m_key3)) {
+            new_root->m_parent->m_right_son = new_root;
+        } else {
+            new_root->m_parent->m_left_son = new_root;
+        }
     }
     new_root->m_right_son->m_height = 1 + max(calcHeight(new_root->m_right_son->m_left_son),
                                               calcHeight(new_root->m_right_son->m_right_son));
@@ -364,18 +366,20 @@ Node<T> *AVLtree<T>::RotateRR(Node<T> *node)
 
     new_root = temp->m_right_son;
     temp->m_right_son = new_root->m_left_son;
-    new_root->m_left_son->m_parent = temp;
+    new_root->m_left_son = temp;
     new_root->m_parent = temp->m_parent;
     temp->m_parent = new_root;
-    new_root->m_left_son = temp;
+    new_root->m_right_son->m_parent = new_root;
+    //new_root->m_left_son = temp;
 
-    if ((new_root->m_parent->m_right_son->m_key1 == temp->m_key1) && (new_root->m_parent->m_right_son->m_key2 == temp->m_key2) && (new_root->m_parent->m_right_son->m_key3 == temp->m_key3))
-    {
-        new_root->m_parent->m_right_son = new_root;
-    }
-    else
-    {
-        new_root->m_parent->m_left_son = new_root;
+    if (new_root->m_parent) {
+        if ((new_root->m_parent->m_right_son->m_key1 == temp->m_key1) &&
+            (new_root->m_parent->m_right_son->m_key2 == temp->m_key2) &&
+            (new_root->m_parent->m_right_son->m_key3 == temp->m_key3)) {
+            new_root->m_parent->m_right_son = new_root;
+        } else {
+            new_root->m_parent->m_left_son = new_root;
+        }
     }
 
     new_root->m_left_son->m_height = 1 + max(calcHeight(new_root->m_left_son->m_left_son),

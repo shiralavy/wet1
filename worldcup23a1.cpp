@@ -193,7 +193,7 @@ StatusType world_cup_t::add_team(int teamId, int points)
 			Team newTeam(teamId, points);
 			// Node<Team>* newTeamNode = new Node<Team>(newTeam, teamId);
 			Node<Team> *root = this->m_tree_teams_by_id->m_root;
-			this->m_tree_teams_by_id->insertNode(root, teamId, 0, 0, newTeam);
+			this->m_tree_teams_by_id->m_root = this->m_tree_teams_by_id->insertNode(root, teamId, 0, 0, newTeam);
 		}
 		catch (std::bad_alloc &)
 		{
@@ -246,17 +246,17 @@ StatusType world_cup_t::add_player(int playerId, int teamId, int gamesPlayed,
 			// insert player into AVL TREE with players sorted by id
 			player newPlayer(playerId, teamId, gamesPlayed - teamForNewPlayer->m_element.m_games_played_by_team, goals, cards, goalKeeper);
 			Node<player> *root = this->m_tree_players_by_id->m_root;
-			this->m_tree_players_by_id->insertNode(root, playerId, 0, 0, newPlayer);
+			this->m_tree_players_by_id->m_root = this->m_tree_players_by_id->insertNode(root, playerId, 0, 0, newPlayer);
 
 			// insert player into AVL TREE of players inside the appropriate team sorted by score
 			Node<player> *insertedPlayer = this->m_tree_players_by_id->findNode(this->m_tree_players_by_id->m_root, playerId, 0, 0);
 			player_in_team newPlayerInTeamByScore(playerId, teamId, insertedPlayer, teamForNewPlayer);
-			teamForNewPlayer->m_element.m_tree_players_in_team_by_score->insertNode(teamForNewPlayer->m_element.m_tree_players_in_team_by_score->m_root, goals, cards, playerId, newPlayerInTeamByScore);
+            teamForNewPlayer->m_element.m_tree_players_in_team_by_score->m_root = teamForNewPlayer->m_element.m_tree_players_in_team_by_score->insertNode(teamForNewPlayer->m_element.m_tree_players_in_team_by_score->m_root, goals, cards, playerId, newPlayerInTeamByScore);
 			teamForNewPlayer->m_element.m_winning_num = teamForNewPlayer->m_element.m_winning_num + goals - cards;
 
 			// insert player into AVL TREE of players inside the appropriate team sorted by id
 			player_in_team newPlayerInTeamByID(playerId, teamId, insertedPlayer, teamForNewPlayer);
-			teamForNewPlayer->m_element.m_tree_players_in_team_by_score->insertNode(teamForNewPlayer->m_element.m_tree_players_in_team_by_score->m_root, playerId, 0, 0, newPlayerInTeamByID);
+            teamForNewPlayer->m_element.m_tree_players_in_team_by_id->m_root = teamForNewPlayer->m_element.m_tree_players_in_team_by_id->insertNode(teamForNewPlayer->m_element.m_tree_players_in_team_by_id->m_root, playerId, 0, 0, newPlayerInTeamByID);
 
 			// update the pointers of player in big AVL TREE to its locations in the team
 			insertedPlayer->m_element.m_player_in_team_by_score = teamForNewPlayer->m_element.m_tree_players_in_team_by_score->findNode(teamForNewPlayer->m_element.m_tree_players_in_team_by_score->m_root, goals, cards, playerId);
@@ -272,7 +272,7 @@ StatusType world_cup_t::add_player(int playerId, int teamId, int gamesPlayed,
 			if (!teamWasReady && teamForNewPlayer->m_element.check_team_ready())
 			{
 				ready_team newReadyTeam(teamForNewPlayer->m_key1, teamForNewPlayer);
-				this->m_tree_ready_teams->insertNode(this->m_tree_ready_teams->m_root, teamId, 0, 0, newReadyTeam);
+                this->m_tree_ready_teams->m_root = this->m_tree_ready_teams->insertNode(this->m_tree_ready_teams->m_root, teamId, 0, 0, newReadyTeam);
 				this->m_num_good_teams++;
 			}
 
@@ -282,7 +282,7 @@ StatusType world_cup_t::add_player(int playerId, int teamId, int gamesPlayed,
 
 			// insert player into AVL TREE containing players by score
 			player_in_scoreboard newPlayerByScore(playerId);
-			this->m_tree_players_by_score->insertNode(this->m_tree_players_by_score->m_root, goals, cards, playerId, newPlayerByScore);
+            this->m_tree_players_by_score->m_root = this->m_tree_players_by_score->insertNode(this->m_tree_players_by_score->m_root, goals, cards, playerId, newPlayerByScore);
 			Node<player_in_scoreboard> *insertedPlayerByScore = this->m_tree_players_by_score->findNode(this->m_tree_players_by_score->m_root, goals, cards, playerId);
 			insertedPlayer->m_element.m_player_in_scoreboard = insertedPlayerByScore;
 
@@ -291,9 +291,14 @@ StatusType world_cup_t::add_player(int playerId, int teamId, int gamesPlayed,
 			insertedPlayerByScore->m_element.m_prev_player_by_score = this->m_tree_players_by_score->closestLowerNode(insertedPlayerByScore);
 
 			// update the next and prev for the players that were affected
-			insertedPlayerByScore->m_element.m_next_player_by_score->m_element.m_prev_player_by_score = insertedPlayerByScore;
-			insertedPlayerByScore->m_element.m_prev_player_by_score->m_element.m_next_player_by_score = insertedPlayerByScore;
+            if (insertedPlayerByScore->m_element.m_next_player_by_score) {
+                insertedPlayerByScore->m_element.m_next_player_by_score->m_element.m_prev_player_by_score = insertedPlayerByScore;
+            }
+            if (insertedPlayerByScore->m_element.m_prev_player_by_score){
+            insertedPlayerByScore->m_element.m_prev_player_by_score->m_element.m_next_player_by_score = insertedPlayerByScore;
 		}
+        }
+
 		catch (std::bad_alloc &)
 		{
 			return StatusType::ALLOCATION_ERROR;
