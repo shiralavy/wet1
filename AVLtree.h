@@ -63,12 +63,12 @@ class AVLtree
 {
 public:
     Node<T> *m_root;
-    int m_heighest_key1;
-    int m_heighest_key2;
-    int m_heighest_key3;
+    int m_highest_key1;
+    int m_highest_key2;
+    int m_highest_key3;
     // int m_lowest_key;
 
-    AVLtree() : m_root(nullptr), m_heighest_key1(-1), m_heighest_key2(-1), m_heighest_key3(-1){};
+    AVLtree() : m_root(nullptr),m_highest_key1(-1), m_highest_key2(-1), m_highest_key3(-1){};
     ~AVLtree();
     Node<T> *clearTree(Node<T> *current_root);
     int calcHeight(Node<T> *m_node);
@@ -85,7 +85,7 @@ public:
     int inOrderVisit(Node<T> *node, int *const array, int start_index);
     int inOrderVisitBetweenRange(Node<T> *node, Node<T> **const array, int start_index, int minRange, int maxRange);
     int inOrderVisitUnite(Node<T> *node, Node<T> **array, int start_index);
-    Node<T> *closestHeigherNode(Node<T> *node);
+    Node<T> *closestHigherNode(Node<T> *node);
     Node<T> *closestLowerNode(Node<T> *node);
     Node<T> *closerBetweenTwoOptions(Node<T> *node, Node<T> *option1, Node<T> *option2);
     void merge(Node<T> **array1, Node<T> **array2, Node<T> **mergedArray, int size1, int size2);
@@ -216,12 +216,12 @@ Node<T> *AVLtree<T>::insertNode(Node<T> *root, int key1, int key2, int key3, con
     if (root == nullptr)
     {
         root = new Node<T>(data_element, key1, key2, key3);
-        if (this->m_heighest_key1 < key1 || (this->m_heighest_key1 == key1 && this->m_heighest_key2 > key2) ||
-            (this->m_heighest_key1 == key1 && this->m_heighest_key2 == key2 && this->m_heighest_key3 < key3))
+        if (this-m_highest_key1 < key1 || (this-m_highest_key1 == key1 && this->m_highest_key2 > key2) ||
+            (this-m_highest_key1 == key1 && this->m_highest_key2 == key2 && this->m_highest_key3 < key3))
         {
-            this->m_heighest_key1 = key1;
-            this->m_heighest_key2 = key2;
-            this->m_heighest_key3 = key3;
+            this-m_highest_key1 = key1;
+            this->m_highest_key2 = key2;
+            this->m_highest_key3 = key3;
         }
         //return root;
     }
@@ -276,7 +276,7 @@ Node<T> *AVLtree<T>::insertNode(Node<T> *root, int key1, int key2, int key3, con
             }
             else if (key3 > root->m_key3)
             {
-                Node<T> *new_right = insertNode(root->m_left_son, key1, key2, key3, data_element);
+                Node<T> *new_right = insertNode(root->m_right_son, key1, key2, key3, data_element);
                 if (!new_right)
                 {
                     new_right->m_parent = root;
@@ -285,12 +285,12 @@ Node<T> *AVLtree<T>::insertNode(Node<T> *root, int key1, int key2, int key3, con
             }
         }
     }
-    if (this->m_heighest_key1 < key1 || (this->m_heighest_key1 == key1 && this->m_heighest_key2 > key2) ||
-        (this->m_heighest_key1 == key1 && this->m_heighest_key2 == key2 && this->m_heighest_key3 < key3))
+    if (this-m_highest_key1 < key1 || (this-m_highest_key1 == key1 && this->m_highest_key2 > key2) ||
+        (this-m_highest_key1 == key1 && this->m_highest_key2 == key2 && this->m_highest_key3 < key3))
     {
-        this->m_heighest_key1 = key1;
-        this->m_heighest_key2 = key2;
-        this->m_heighest_key3 = key3;
+        this-m_highest_key1 = key1;
+        this->m_highest_key2 = key2;
+        this->m_highest_key3 = key3;
     }
     root->m_height = 1 + max(calcHeight(root->m_left_son),
                              calcHeight(root->m_right_son));
@@ -404,7 +404,7 @@ Node<T> *AVLtree<T>::RotateLR(Node<T> *node)
 template <class T>
 Node<T> *AVLtree<T>::RotateRL(Node<T> *node)
 {
-    node->m_right_son = RotateLL(node->m_right_son); // fix this functio jonah
+    node->m_right_son = RotateLL(node->m_right_son);
     node->m_right_son->m_height = 1 + max(calcHeight(node->m_right_son->m_left_son),
                                           calcHeight(node->m_right_son->m_right_son));
     Node<T> *new_root = RotateRR(node);
@@ -498,7 +498,7 @@ Node<T> *AVLtree<T>::deleteNode(Node<T> *root, int key1, int key2, int key3) // 
             { // this means the key is equal to the current node's key
                 if (root->m_left_son && root->m_right_son)
                 { // two children
-                    // we find the next node that should be the new root - this is the node with the samllest value in the right son tree
+                    // we find the next node that should be the new root - this is the node with the smallest value in the right son tree
                     Node<T> *new_root = minValueNode(root->m_right_son);
                     // we copy the data element and the key to the root, but keep the height and pointers to the next sons.
                     // this means we changed the value of the root node without actually deleting the root
@@ -506,7 +506,7 @@ Node<T> *AVLtree<T>::deleteNode(Node<T> *root, int key1, int key2, int key3) // 
                     root->m_key2 = new_root->m_key2;
                     root->m_key3 = new_root->m_key3;
                     root->m_element = new_root->m_element;
-                    // now we delete the original node that was copied to become the root, we dont need it anymore because we copied it's values
+                    // now we delete the original node that was copied to become the root, we don't need it anymore because we copied its values
                     root->m_right_son = deleteNode(root->m_right_son, root->m_key1, root->m_key2, root->m_key3);
                     if (!root->m_right_son)
                     {
@@ -611,7 +611,7 @@ int AVLtree<T>::inOrderVisitBetweenRange(Node<T> *node, Node<T> **const array, i
 }
 
 template <class T>
-Node<T> *AVLtree<T>::closestHeigherNode(Node<T> *node)
+Node<T> *AVLtree<T>::closestHigherNode(Node<T> *node)
 {
     if (!node)
     {
@@ -619,7 +619,7 @@ Node<T> *AVLtree<T>::closestHeigherNode(Node<T> *node)
     }
     if (!node->m_parent && !node->m_right_son)
     {
-        // this node doesnt have a parent or a right son - there is no heigher value node in the tree
+        // this node doesn't have a parent or a right son - there is no higher value node in the tree
         return nullptr;
     }
     if (node->m_parent && node->m_right_son == nullptr)
@@ -635,7 +635,7 @@ Node<T> *AVLtree<T>::closestHeigherNode(Node<T> *node)
     }
     else
     {
-        // there is a right son and a parent or only a right son and no parent, either way the parent is not the closest heigher
+        // there is a right son and a parent or only a right son and no parent, either way the parent is not the closest higher
         return minValueNode(node->m_right_son);
     }
     return nullptr;
@@ -650,7 +650,7 @@ Node<T> *AVLtree<T>::closestLowerNode(Node<T> *node)
     }
     if (!node->m_parent && !node->m_left_son)
     {
-        // this node doesnt have a parent or a left son - there is no lower value node in the tree
+        // this node doesn't have a parent or a left son - there is no lower value node in the tree
         return nullptr;
     }
     if (node->m_parent && node->m_left_son == nullptr)
@@ -778,7 +778,7 @@ void AVLtree<T>::merge(Node<T> **array1, Node<T> **array2, Node<T> **mergedArray
                 k++;
                 continue;
             }
-            // by id
+                // by id
             else
             {
                 if (array1[i]->m_key3 < array2[j]->m_key3)
