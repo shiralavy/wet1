@@ -270,7 +270,7 @@ StatusType world_cup_t::add_player(int playerId, int teamId, int gamesPlayed,
 			teamForNewPlayer->m_element.m_num_players++;
 			if (goalKeeper)
 			{
-				teamForNewPlayer->m_element.m_num_goalkeeprs++;
+				teamForNewPlayer->m_element.m_num_goalkeepers++;
 			}
 			if (!teamWasReady && teamForNewPlayer->m_element.check_team_ready())
 			{
@@ -348,7 +348,7 @@ StatusType world_cup_t::remove_player(int playerId)
 		// checks if the player to remove is a goalkeeper
 		if (tempPlayerInTeamByScore->m_element.m_player->m_element.m_goalkeeper)
 		{
-			tempTeamContainingPlayer->m_element.m_num_goalkeeprs--;
+			tempTeamContainingPlayer->m_element.m_num_goalkeepers--;
 		}
 		// remove from tree ready teams
 		if (!tempTeamContainingPlayer->m_element.check_team_ready())
@@ -587,7 +587,7 @@ StatusType world_cup_t::unite_teams(int teamId1, int teamId2, int newTeamId)
 	}
 
 	newTeam->m_element.m_games_played_by_team = team1->m_element.m_games_played_by_team + team2->m_element.m_games_played_by_team;
-	newTeam->m_element.m_num_goalkeeprs = team1->m_element.m_num_goalkeeprs + team2->m_element.m_num_goalkeeprs;
+	newTeam->m_element.m_num_goalkeepers = team1->m_element.m_num_goalkeepers + team2->m_element.m_num_goalkeepers;
 	newTeam->m_element.m_num_players = team1->m_element.m_num_players + team2->m_element.m_num_players;
 	newTeam->m_element.m_winning_num = team1->m_element.m_winning_num + team2->m_element.m_winning_num;
 	newTeam->m_element.m_points = team1->m_element.m_points + team2->m_element.m_points;
