@@ -136,17 +136,21 @@ int AVLtree<T>::calcHeight(Node<T> *node)
     }
     else
     {
-        if (node->m_left_son && node->m_right_son)
-        {
-            h = 1 + max(node->m_left_son->m_height, node->m_right_son->m_height);
+        if (node->m_left_son){
+            if (node->m_right_son){
+                h = 1 + max(node->m_left_son->m_height, node->m_right_son->m_height);
+            }
+            else {
+                h = 1 + node->m_left_son->m_height;
+            }
         }
-        else if (!node->m_left_son && node->m_right_son)
-        {
-            h = 1 + node->m_right_son->m_height;
-        }
-        else if (node->m_left_son && !node->m_right_son)
-        {
-            h = 1 + node->m_left_son->m_height;
+        else if(node->m_right_son) {
+            if (node->m_left_son) {
+                h = 1 + max(node->m_left_son->m_height, node->m_right_son->m_height);
+            }
+            else {
+                h = 1 + node->m_right_son->m_height;
+            }
         }
     }
     return h;
@@ -445,10 +449,11 @@ Node<T> *AVLtree<T>::deleteNode(Node<T> *root, int key1, int key2, int key3) // 
     {
         return nullptr;
     }
+
     if (key1 < root->m_key1)
     {
         root->m_left_son = deleteNode(root->m_left_son, key1, key2, key3);
-        if (!root->m_left_son)
+        if (root->m_left_son)
         {
             root->m_left_son->m_parent = root;
         }
@@ -456,7 +461,7 @@ Node<T> *AVLtree<T>::deleteNode(Node<T> *root, int key1, int key2, int key3) // 
     else if (key1 > root->m_key1)
     {
         root->m_right_son = deleteNode(root->m_right_son, key1, key2, key3);
-        if (!root->m_right_son)
+        if (root->m_right_son)
         {
             root->m_right_son->m_parent = root;
         }
@@ -466,7 +471,7 @@ Node<T> *AVLtree<T>::deleteNode(Node<T> *root, int key1, int key2, int key3) // 
         if (key2 > root->m_key2)
         {
             root->m_left_son = deleteNode(root->m_left_son, key1, key2, key3);
-            if (!root->m_left_son)
+            if (root->m_left_son)
             {
                 root->m_left_son->m_parent = root;
             }
@@ -474,7 +479,7 @@ Node<T> *AVLtree<T>::deleteNode(Node<T> *root, int key1, int key2, int key3) // 
         else if (key2 < root->m_key2)
         {
             root->m_right_son = deleteNode(root->m_right_son, key1, key2, key3);
-            if (!root->m_right_son)
+            if (root->m_right_son)
             {
                 root->m_right_son->m_parent = root;
             }
@@ -484,7 +489,7 @@ Node<T> *AVLtree<T>::deleteNode(Node<T> *root, int key1, int key2, int key3) // 
             if (key3 < root->m_key3)
             {
                 root->m_left_son = deleteNode(root->m_left_son, key1, key2, key3);
-                if (!root->m_left_son)
+                if (root->m_left_son)
                 {
                     root->m_left_son->m_parent = root;
                 }
@@ -492,13 +497,20 @@ Node<T> *AVLtree<T>::deleteNode(Node<T> *root, int key1, int key2, int key3) // 
             else if (key3 > root->m_key3)
             {
                 root->m_right_son = deleteNode(root->m_right_son, key1, key2, key3);
-                if (!root->m_right_son)
+                if (root->m_right_son)
                 {
                     root->m_right_son->m_parent = root;
                 }
             }
             else
             { // this means the key is equal to the current node's key
+                if (key1 == this->m_highest_key1 && key2 == this->m_highest_key2 && key3 == this->m_highest_key3){
+                    Node<T>* temp = closestLowerNode(root);
+                    this->m_highest_key1 = temp->m_key1;
+                    this->m_highest_key2 = temp->m_key2;
+                    this->m_highest_key3 = temp->m_key3;
+                    temp = nullptr;
+                }
                 if (root->m_left_son && root->m_right_son)
                 { // two children
                     // we find the next node that should be the new root - this is the node with the smallest value in the right son tree
@@ -509,29 +521,69 @@ Node<T> *AVLtree<T>::deleteNode(Node<T> *root, int key1, int key2, int key3) // 
                     root->m_key2 = new_root->m_key2;
                     root->m_key3 = new_root->m_key3;
                     root->m_element = new_root->m_element;
+                    if (root->m_right_son->m_key1 == new_root->m_key1 && root->m_right_son->m_key2 == new_root->m_key2 && root->m_right_son->m_key3 == new_root->m_key3){
+                        new_root->m_parent = nullptr;
+                    }
                     // now we delete the original node that was copied to become the root, we don't need it anymore because we copied its values
                     root->m_right_son = deleteNode(root->m_right_son, root->m_key1, root->m_key2, root->m_key3);
-                    if (!root->m_right_son)
+                    if (root->m_right_son)
                     {
                         root->m_right_son->m_parent = root;
                     }
                 }
-                else
-                { // one or zero children
+                else { // one or zero children
                     Node<T> *temp = root;
-                    if (temp->m_left_son == nullptr)
-                    {
-                        root = root->m_right_son;
+                    Node<T>* temp_parent = root->m_parent;
+                    if (root) {
+                        if (root->m_left_son == nullptr && root->m_right_son == nullptr) {
+                            if (temp_parent) {
+                                if ((root->m_key1 < root->m_parent->m_key1) ||
+                                    (root->m_key1 == root->m_parent->m_key1 && root->m_key2 > root->m_parent->m_key2) ||
+                                    (root->m_key1 == root->m_parent->m_key1 && root->m_key2 == root->m_parent->m_key2 && root->m_key3 < root->m_parent->m_key3)) {
+                                    temp_parent->m_left_son = nullptr;
+                                } else {
+                                    temp_parent->m_right_son = nullptr;
+                                }
+                            }
+                            delete temp;
+                            return nullptr;
+                        }
+                        else if (root->m_right_son == nullptr) {
+                            root = root->m_left_son;
+                            if (temp_parent) {
+                                    if ((temp->m_key1 < temp->m_parent->m_key1) ||
+                                        (temp->m_key1 == temp->m_parent->m_key1 && temp->m_key2 > temp->m_parent->m_key2) ||
+                                        (temp->m_key1 == temp->m_parent->m_key1 && temp->m_key2 == temp->m_parent->m_key2 && temp->m_key3 < temp->m_parent->m_key3)) {
+                                        temp->m_parent->m_left_son = root;
+                                    }
+                                    else {
+                                        temp->m_parent->m_right_son = root;
+                                    }
+                                }
+                            if (root){
+                                root->m_parent = temp_parent;
+                            }
+                            temp->m_left_son = nullptr;
+                            delete temp;
+                        }
+                        else if (temp->m_left_son == nullptr) {
+                            root = root->m_right_son;
+                            if (temp_parent) {
+                                if ((temp->m_key1 < temp->m_parent->m_key1) ||
+                                    (temp->m_key1 == temp->m_parent->m_key1 && temp->m_key2 > temp->m_parent->m_key2) ||
+                                    (temp->m_key1 == temp->m_parent->m_key1 && temp->m_key2 == temp->m_parent->m_key2 && temp->m_key3 < temp->m_parent->m_key3)) {
+                                    temp->m_parent->m_left_son = root;
+                                } else {
+                                    temp->m_parent->m_right_son = root;
+                                }
+                            }
+                            if (root){
+                                root->m_parent = temp_parent;
+                            }
+                            temp->m_right_son = nullptr;
+                            delete temp;
+                        }
                     }
-                    else if (temp->m_right_son == nullptr)
-                    {
-                        root = root->m_left_son;
-                    }
-                    if (!root)
-                    {
-                        root->m_parent = temp->m_parent;
-                    }
-                    delete temp;
                 }
                 root->m_height = 1 + max(calcHeight(root->m_left_son),
                                          calcHeight(root->m_right_son));
@@ -560,6 +612,7 @@ Node<T> *AVLtree<T>::deleteNode(Node<T> *root, int key1, int key2, int key3) // 
         // LR ROTATION
         return RotateLR(root);
     }
+
     return root;
 }
 
@@ -676,55 +729,46 @@ Node<T> *AVLtree<T>::closestLowerNode(Node<T> *node)
 }
 
 template <class T>
-Node<T> *AVLtree<T>::closerBetweenTwoOptions(Node<T> *node, Node<T> *option1, Node<T> *option2)
-{
+Node<T> *AVLtree<T>::closerBetweenTwoOptions(Node<T> *node, Node<T> *option1, Node<T> *option2) {
+    if (option1 && option2 && node) {
+        int key1_option1 = option1->m_key1;
+        int key2_option1 = option1->m_key2;
+        int key3_option1 = option1->m_key3;
+        //
+        int key1_option2 = option2->m_key1;
+        int key2_option2 = option2->m_key2;
+        int key3_option2 = option2->m_key3;
 
-    int key1_option1 = option1->m_key1;
-    int key2_option1 = option1->m_key2;
-    int key3_option1 = option1->m_key3;
-    //
-    int key1_option2 = option2->m_key1;
-    int key2_option2 = option2->m_key2;
-    int key3_option2 = option2->m_key3;
-
-    if (abs(key1_option1, node->m_key1) < abs(key1_option2, node->m_key1))
-    {
-        return option1;
+        if (abs(key1_option1, node->m_key1) < abs(key1_option2, node->m_key1)) {
+            return option1;
+        } else if (abs(key1_option1, node->m_key1) > abs(key1_option2, node->m_key1)) {
+            return option2;
+        } else {
+            if (abs(key2_option1, node->m_key2) < abs(key2_option2, node->m_key2)) {
+                return option1;
+            } else if (abs(key2_option1, node->m_key2) > abs(key2_option2, node->m_key2)) {
+                return option2;
+            } else {
+                if (abs(key3_option1, node->m_key3) < abs(key3_option2, node->m_key3)) {
+                    return option1;
+                } else if (abs(key3_option1, node->m_key3) > abs(key3_option2, node->m_key3)) {
+                    return option2;
+                } else {
+                    if (key3_option1 < key3_option2) {
+                        return option2;
+                    }
+                    return option1;
+                }
+            }
+        }
     }
-    else if (abs(key1_option1, node->m_key1) > abs(key1_option2, node->m_key1))
-    {
+    else if (!option1){
         return option2;
     }
-    else
-    {
-        if (abs(key2_option1, node->m_key2) < abs(key2_option2, node->m_key2))
-        {
-            return option1;
-        }
-        else if (abs(key2_option1, node->m_key2) > abs(key2_option2, node->m_key2))
-        {
-            return option2;
-        }
-        else
-        {
-            if (abs(key3_option1, node->m_key3) < abs(key3_option2, node->m_key3))
-            {
-                return option1;
-            }
-            else if (abs(key3_option1, node->m_key3) > abs(key3_option2, node->m_key3))
-            {
-                return option2;
-            }
-            else
-            {
-                if (key3_option1 < key3_option2)
-                {
-                    return option2;
-                }
-                return option1;
-            }
-        }
+    else if (!option2){
+        return option1;
     }
+    return nullptr;
 }
 
 template <class T>
@@ -735,9 +779,9 @@ int AVLtree<T>::inOrderVisitUnite(Node<T> *node, Node<T> **array, int start_inde
         return start_index;
     }
     int index_after_left_visit = inOrderVisitUnite(node->m_left_son, array, start_index);
-    array[index_after_left_visit] = new Node<T>(node->m_element, node->m_key1, node->m_key2, node->m_key3);
+    array[index_after_left_visit] = node;
     int index_after_right_visit = inOrderVisitUnite(node->m_right_son, array, index_after_left_visit + 1);
-    delete node;
+    //delete node;
     return index_after_right_visit;
 }
 
@@ -827,14 +871,15 @@ Node<T> *AVLtree<T>::arrayToTree(Node<T> **array, int start, int end)
     }
     int middle = (start + end) / 2;
 
-    Node<T> *curr = new Node<T>(array[middle]->m_element, array[middle]->m_key1, array[middle]->m_key2, array[middle]->m_key3);
+    Node<T> *curr = array[middle];
+    //delete array[middle];
     curr->m_left_son = arrayToTree(array, start, middle - 1);
     curr->m_right_son = arrayToTree(array, middle + 1, end);
-    if (!curr->m_left_son)
+    if (curr->m_left_son)
     {
         curr->m_left_son->m_parent = curr;
     }
-    if (!curr->m_right_son)
+    if (curr->m_right_son)
     {
         curr->m_right_son->m_parent = curr;
     }

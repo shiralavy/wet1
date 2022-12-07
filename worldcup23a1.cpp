@@ -61,9 +61,13 @@ StatusType world_cup_t::add_player(int playerId, Node<Team> *team, int gamesPlay
 			insertedPlayerByScore->m_element.m_prev_player_by_score = this->m_tree_players_by_score->closestLowerNode(insertedPlayerByScore);
 
 			// update the next and prev for the players that were affected
-			insertedPlayerByScore->m_element.m_next_player_by_score->m_element.m_prev_player_by_score = insertedPlayerByScore;
-			insertedPlayerByScore->m_element.m_prev_player_by_score->m_element.m_next_player_by_score = insertedPlayerByScore;
-		}
+            if (insertedPlayerByScore->m_element.m_next_player_by_score) {
+                insertedPlayerByScore->m_element.m_next_player_by_score->m_element.m_prev_player_by_score = insertedPlayerByScore;
+            }
+            if (insertedPlayerByScore->m_element.m_prev_player_by_score){
+                insertedPlayerByScore->m_element.m_prev_player_by_score->m_element.m_next_player_by_score = insertedPlayerByScore;
+            }
+        }
 		catch (std::bad_alloc &)
 		{
 			return StatusType::ALLOCATION_ERROR;
@@ -100,7 +104,6 @@ StatusType world_cup_t::remove_player_except_from_tree_ready_teams(int playerId)
 	this->m_tree_players_by_score->deleteNode(this->m_tree_players_by_score->m_root, playerToRemove->m_element.m_goals,
 											  playerToRemove->m_element.m_cards, playerToRemove->m_element.m_player_id);
 
-	// if because of removing this player a team that was ready has now become NOT ready, we remove this team:
 	Node<player_in_team> *tempPlayerInTeamByScore = playerToRemove->m_element.m_player_in_team_by_score;
 	Node<Team> *tempTeamContainingPlayer = tempPlayerInTeamByScore->m_element.m_my_team;
 
@@ -219,7 +222,7 @@ StatusType world_cup_t::remove_team(int teamId)
 	}
 
 	// we deleted the team from the id tree
-	this->m_tree_teams_by_id->deleteNode(TeamToRemove, teamId, 0, 0);
+    this->m_tree_teams_by_id->m_root = this->m_tree_teams_by_id->deleteNode(this->m_tree_teams_by_id->m_root, teamId, 0, 0);
 	return StatusType::SUCCESS;
 }
 
@@ -574,11 +577,13 @@ StatusType world_cup_t::unite_teams(int teamId1, int teamId2, int newTeamId)
 	{
 		arrayPlayersID1[i]->m_element.m_player->m_element.m_games_played -= team2->m_element.m_games_played_by_team;
 		arrayPlayersID1[i]->m_element.m_player->m_element.m_team_id = newTeamId;
+        arrayPlayersID1[i]->m_parent = nullptr;
 	}
 	for (int i = 0; i < numPlayersTeam2; i++)
 	{
 		arrayPlayersID2[i]->m_element.m_player->m_element.m_games_played -= team1->m_element.m_games_played_by_team;
 		arrayPlayersID2[i]->m_element.m_player->m_element.m_team_id = newTeamId;
+        arrayPlayersID2[i]->m_parent = nullptr;
 	}
 
 	newTeam->m_element.m_games_played_by_team = team1->m_element.m_games_played_by_team + team2->m_element.m_games_played_by_team;
@@ -623,7 +628,7 @@ StatusType world_cup_t::unite_teams(int teamId1, int teamId2, int newTeamId)
 	delete[] mergeArrayScore;
 
 	// remove the old teams after they have been united to a new team under a new name
-	if (newTeamId != teamId1 && newTeamId != teamId1)
+	if (newTeamId != teamId1 && newTeamId != teamId2)
 	{
 		team1->m_element.m_num_players = 0;
 		team2->m_element.m_num_players = 0;
@@ -731,9 +736,18 @@ output_t<int> world_cup_t::get_closest_player(int playerId, int teamId)
 	{
 		return StatusType::INVALID_INPUT;
 	}
+    if (this->m_num_players < 2){
+        return StatusType::FAILURE;
+    }
 	Node<Team> *currentTeam = this->m_tree_teams_by_id->findNode(this->m_tree_teams_by_id->m_root, teamId, 0, 0);
+    if (!currentTeam){
+        return StatusType::FAILURE;
+    }
 	Node<player_in_team> *playerInTeamById = currentTeam->m_element.m_tree_players_in_team_by_id->findNode(currentTeam->m_element.m_tree_players_in_team_by_id->m_root, playerId, 0, 0);
-	//int goals = playerInTeamById->m_element.m_player->m_element.m_goals;
+    if (!playerInTeamById){
+        return StatusType::FAILURE;
+    }
+    //int goals = playerInTeamById->m_element.m_player->m_element.m_goals;
 	//int cards = playerInTeamById->m_element.m_player->m_element.m_cards;
 	//Node<player_in_team> *playerInTeamByScore = currentTeam->m_element.m_tree_players_in_team_by_score->findNode(currentTeam->m_element.m_tree_players_in_team_by_score->m_root, goals, cards, playerId);
 
