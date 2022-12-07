@@ -872,6 +872,7 @@ Node<T> *AVLtree<T>::arrayToTree(Node<T> **array, int start, int end)
     int middle = (start + end) / 2;
 
     Node<T> *curr = array[middle];
+            //new Node<T>(array[middle]->m_element, array[middle]->m_key1, array[middle]->m_key2, array[middle]->m_key3);
     //delete array[middle];
     curr->m_left_son = arrayToTree(array, start, middle - 1);
     curr->m_right_son = arrayToTree(array, middle + 1, end);

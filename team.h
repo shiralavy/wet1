@@ -9,7 +9,7 @@
 
 class Team {
     //private:
-    public:
+public:
     int m_team_id;
     int m_points;
     int m_num_players;
@@ -17,7 +17,7 @@ class Team {
     int m_winning_num;
     int m_games_played_by_team;
     //bool m_ready_to_play; //boolean value if this team is ready to play (has 11 players and one goalkeeper)
-    AVLtree<player_in_team>* m_tree_players_in_team_by_score; 
+    AVLtree<player_in_team>* m_tree_players_in_team_by_score;
     AVLtree<player_in_team>* m_tree_players_in_team_by_id;
 
     /***********************************************************
@@ -34,19 +34,24 @@ class Team {
         m_tree_players_in_team_by_score = new AVLtree<player_in_team>();
         m_tree_players_in_team_by_id = new AVLtree<player_in_team>();
 
-    }; 
+    };
 
     /***********************************************************
     * ~Team: destructor for Team
     ***********************************************************/
 
-    ~Team() = default;
-    /*{
-      //  std::cout << "Dtor for Team called" << std::endl;
-      //  delete m_tree_players_in_team_by_score;
-      //  delete m_tree_players_in_team_by_id;
-    }; 
-    */
+    ~Team()
+    {
+        //  std::cout << "Dtor for Team called" << std::endl;
+
+        if (m_tree_players_in_team_by_score) {
+            delete m_tree_players_in_team_by_score;
+        }
+        if (m_tree_players_in_team_by_id)
+            delete m_tree_players_in_team_by_id;
+    };
+
+
 
     bool check_team_ready()
     {
@@ -59,11 +64,11 @@ class Team {
 
 class ready_team {
 
-    public:
+public:
     int m_team_id;
     //int m_points;
     //bool m_ready_to_play; //boolean value if this team is ready to play (has 11 players and one goalkeeper)
-    Node<Team>* m_team; 
+    Node<Team>* m_team;
 
     /***********************************************************
          * ready_team: constructor for ready_team
