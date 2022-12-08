@@ -9,7 +9,7 @@ StatusType world_cup_t::add_player(int playerId, Node<Team> *team, int gamesPlay
                                    int goals, int cards, bool goalKeeper)
 {
 
-    if (playerId <= 0 || !team || gamesPlayed < 0 || goals < 0 ||
+    if (playerId <= 0 || !team || gamesPlayed < 0 || goals < 0 || cards < 0 ||
         (gamesPlayed == 0 && (goals > 0 || cards > 0)))
     {
         return StatusType::INVALID_INPUT;
@@ -97,11 +97,14 @@ StatusType world_cup_t::remove_player_except_from_tree_ready_teams(int playerId)
     Node<player_in_scoreboard> *playerToRemoveByScore = playerToRemove->m_element.m_player_in_scoreboard;
     Node<player_in_scoreboard> *nextPlayer = playerToRemoveByScore->m_element.m_next_player_by_score;
     Node<player_in_scoreboard> *prevPlayer = playerToRemoveByScore->m_element.m_prev_player_by_score;
-    prevPlayer->m_element.m_next_player_by_score = nextPlayer;
-    nextPlayer->m_element.m_prev_player_by_score = prevPlayer;
-
+    if (prevPlayer) {
+        prevPlayer->m_element.m_next_player_by_score = nextPlayer;
+    }
+    if (nextPlayer) {
+        nextPlayer->m_element.m_prev_player_by_score = prevPlayer;
+    }
     // now we delete from the tree
-    this->m_tree_players_by_score->deleteNode(this->m_tree_players_by_score->m_root, playerToRemove->m_element.m_goals,
+    this->m_tree_players_by_score->m_root = this->m_tree_players_by_score->deleteNode(this->m_tree_players_by_score->m_root, playerToRemove->m_element.m_goals,
                                               playerToRemove->m_element.m_cards, playerToRemove->m_element.m_player_id);
 
     Node<player_in_team> *tempPlayerInTeamByScore = playerToRemove->m_element.m_player_in_team_by_score;
@@ -112,13 +115,13 @@ StatusType world_cup_t::remove_player_except_from_tree_ready_teams(int playerId)
     tempTeamContainingPlayer->m_element.m_winning_num -= num;
 
     // delete from tree of players by score inside Team
-    tempTeamContainingPlayer->m_element.m_tree_players_in_team_by_score->deleteNode(tempTeamContainingPlayer->m_element.m_tree_players_in_team_by_score->m_root, playerToRemove->m_element.m_goals, playerToRemove->m_element.m_cards, playerToRemove->m_element.m_player_id);
+    tempTeamContainingPlayer->m_element.m_tree_players_in_team_by_score->m_root = tempTeamContainingPlayer->m_element.m_tree_players_in_team_by_score->deleteNode(tempTeamContainingPlayer->m_element.m_tree_players_in_team_by_score->m_root, playerToRemove->m_element.m_goals, playerToRemove->m_element.m_cards, playerToRemove->m_element.m_player_id);
 
     // delete from tree of players by id inside team
-    tempTeamContainingPlayer->m_element.m_tree_players_in_team_by_id->deleteNode(tempTeamContainingPlayer->m_element.m_tree_players_in_team_by_id->m_root, playerToRemove->m_element.m_player_id, 0, 0);
+    tempTeamContainingPlayer->m_element.m_tree_players_in_team_by_id->m_root = tempTeamContainingPlayer->m_element.m_tree_players_in_team_by_id->deleteNode(tempTeamContainingPlayer->m_element.m_tree_players_in_team_by_id->m_root, playerToRemove->m_element.m_player_id, 0, 0);
 
     // delete from tree of all players by playerId
-    this->m_tree_players_by_id->deleteNode(this->m_tree_players_by_id->m_root, playerId, 0, 0);
+    this->m_tree_players_by_id->m_root = this->m_tree_players_by_id->deleteNode(this->m_tree_players_by_id->m_root, playerId, 0, 0);
 
     this->m_best_player = this->m_tree_players_by_score->m_highest_key3;
     this->m_num_players--;
@@ -171,10 +174,10 @@ world_cup_t::world_cup_t() : m_best_player(-1), m_num_players(0), m_num_good_tea
 
 world_cup_t::~world_cup_t()
 {
-    delete m_tree_players_by_id;
     delete m_tree_players_by_score;
-    delete m_tree_teams_by_id;
     delete m_tree_ready_teams;
+    delete m_tree_teams_by_id;
+    delete m_tree_players_by_id;
 }
 
 StatusType world_cup_t::add_team(int teamId, int points)
@@ -231,7 +234,7 @@ StatusType world_cup_t::remove_team(int teamId)
 StatusType world_cup_t::add_player(int playerId, int teamId, int gamesPlayed,
                                    int goals, int cards, bool goalKeeper)
 {
-    if (playerId <= 0 || teamId <= 0 || gamesPlayed < 0 || goals < 0 ||
+    if (playerId <= 0 || teamId <= 0 || gamesPlayed < 0 || goals < 0 || cards < 0 ||
         (gamesPlayed == 0 && (goals > 0 || cards > 0)))
     {
         return StatusType::INVALID_INPUT;
@@ -333,11 +336,15 @@ StatusType world_cup_t::remove_player(int playerId)
     Node<player_in_scoreboard> *playerToRemoveByScore = playerToRemove->m_element.m_player_in_scoreboard;
     Node<player_in_scoreboard> *nextPlayer = playerToRemoveByScore->m_element.m_next_player_by_score;
     Node<player_in_scoreboard> *prevPlayer = playerToRemoveByScore->m_element.m_next_player_by_score;
+    if (prevPlayer){
     prevPlayer->m_element.m_next_player_by_score = nextPlayer;
+    }
+    if (nextPlayer){
     nextPlayer->m_element.m_prev_player_by_score = prevPlayer;
+}
 
     // now we delete from the tree
-    this->m_tree_players_by_score->deleteNode(this->m_tree_players_by_score->m_root, playerToRemove->m_element.m_goals,
+    this->m_tree_players_by_score->m_root = this->m_tree_players_by_score->deleteNode(this->m_tree_players_by_score->m_root, playerToRemove->m_element.m_goals,
                                               playerToRemove->m_element.m_cards, playerToRemove->m_element.m_player_id);
 
     // if because of removing this player a team that was ready has now become NOT ready, we remove this team:
@@ -356,7 +363,7 @@ StatusType world_cup_t::remove_player(int playerId)
         // remove from tree ready teams
         if (!tempTeamContainingPlayer->m_element.check_team_ready())
         {
-            this->m_tree_ready_teams->deleteNode(this->m_tree_ready_teams->m_root, playerToRemove->m_element.m_team_id, 0, 0);
+            this->m_tree_ready_teams->m_root = this->m_tree_ready_teams->deleteNode(this->m_tree_ready_teams->m_root, playerToRemove->m_element.m_team_id, 0, 0);
             this->m_num_good_teams--;
         }
     }
@@ -365,13 +372,13 @@ StatusType world_cup_t::remove_player(int playerId)
     tempTeamContainingPlayer->m_element.m_winning_num -= num;
 
     // delete from tree of players by score inside Team
-    tempTeamContainingPlayer->m_element.m_tree_players_in_team_by_score->deleteNode(tempTeamContainingPlayer->m_element.m_tree_players_in_team_by_score->m_root, playerToRemove->m_element.m_goals, playerToRemove->m_element.m_cards, playerToRemove->m_element.m_player_id);
+    tempTeamContainingPlayer->m_element.m_tree_players_in_team_by_score->m_root = tempTeamContainingPlayer->m_element.m_tree_players_in_team_by_score->deleteNode(tempTeamContainingPlayer->m_element.m_tree_players_in_team_by_score->m_root, playerToRemove->m_element.m_goals, playerToRemove->m_element.m_cards, playerToRemove->m_element.m_player_id);
 
     // delete from tree of players by id inside team
-    tempTeamContainingPlayer->m_element.m_tree_players_in_team_by_id->deleteNode(tempTeamContainingPlayer->m_element.m_tree_players_in_team_by_id->m_root, playerToRemove->m_element.m_player_id, 0, 0);
+    tempTeamContainingPlayer->m_element.m_tree_players_in_team_by_id->m_root = tempTeamContainingPlayer->m_element.m_tree_players_in_team_by_id->deleteNode(tempTeamContainingPlayer->m_element.m_tree_players_in_team_by_id->m_root, playerToRemove->m_element.m_player_id, 0, 0);
 
     // delete from tree of all players by playerId
-    this->m_tree_players_by_id->deleteNode(this->m_tree_players_by_id->m_root, playerId, 0, 0);
+    this->m_tree_players_by_id->m_root = this->m_tree_players_by_id->deleteNode(this->m_tree_players_by_id->m_root, playerId, 0, 0);
 
     this->m_best_player = this->m_tree_players_by_score->m_highest_key3;
     this->m_num_players--;
@@ -529,12 +536,12 @@ StatusType world_cup_t::unite_teams(int teamId1, int teamId2, int newTeamId)
         {
             if (readyTeam1)
             {
-                this->m_tree_ready_teams->deleteNode(this->m_tree_ready_teams->m_root, teamId1, 0, 0);
+                this->m_tree_ready_teams->m_root = this->m_tree_ready_teams->deleteNode(this->m_tree_ready_teams->m_root, teamId1, 0, 0);
                 this->m_num_good_teams--;
             }
             if (readyTeam2)
             {
-                this->m_tree_ready_teams->deleteNode(this->m_tree_ready_teams->m_root, teamId2, 0, 0);
+                this->m_tree_ready_teams->m_root = this->m_tree_ready_teams->deleteNode(this->m_tree_ready_teams->m_root, teamId2, 0, 0);
                 this->m_num_good_teams--;
             }
             ready_team newReadyTeam(newTeamId, newTeam);
@@ -549,7 +556,7 @@ StatusType world_cup_t::unite_teams(int teamId1, int teamId2, int newTeamId)
         {
             if (readyTeam1)
             {
-                this->m_tree_ready_teams->deleteNode(this->m_tree_ready_teams->m_root, teamId2, 0, 0);
+                this->m_tree_ready_teams->m_root = this->m_tree_ready_teams->deleteNode(this->m_tree_ready_teams->m_root, teamId2, 0, 0);
                 this->m_num_good_teams--;
             }
             else
@@ -566,7 +573,7 @@ StatusType world_cup_t::unite_teams(int teamId1, int teamId2, int newTeamId)
         {
             if (readyTeam2)
             {
-                this->m_tree_ready_teams->deleteNode(this->m_tree_ready_teams->m_root, teamId1, 0, 0);
+                this->m_tree_ready_teams->m_root = this->m_tree_ready_teams->deleteNode(this->m_tree_ready_teams->m_root, teamId1, 0, 0);
                 this->m_num_good_teams--;
             }
             else

@@ -506,9 +506,11 @@ Node<T> *AVLtree<T>::deleteNode(Node<T> *root, int key1, int key2, int key3) // 
             { // this means the key is equal to the current node's key
                 if (key1 == this->m_highest_key1 && key2 == this->m_highest_key2 && key3 == this->m_highest_key3){
                     Node<T>* temp = closestLowerNode(root);
-                    this->m_highest_key1 = temp->m_key1;
-                    this->m_highest_key2 = temp->m_key2;
-                    this->m_highest_key3 = temp->m_key3;
+                    if (temp) {
+                        this->m_highest_key1 = temp->m_key1;
+                        this->m_highest_key2 = temp->m_key2;
+                        this->m_highest_key3 = temp->m_key3;
+                    }
                     temp = nullptr;
                 }
                 if (root->m_left_son && root->m_right_son)
