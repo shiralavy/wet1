@@ -51,12 +51,9 @@ class player {
     ***********************************************************/
 
     ~player() {
-        //not sure if need to delete
-        /*
-        delete m_player_in_team_by_score;
-        delete m_player_in_team_by_id;
-        delete m_player_in_scoreboard;
-        */
+        m_player_in_team_by_score = nullptr;
+        m_player_in_team_by_id = nullptr;
+        m_player_in_scoreboard = nullptr;
     };
 
     

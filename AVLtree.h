@@ -695,6 +695,7 @@ Node<T> *AVLtree<T>::closestHigherNode(Node<T> *root,Node<T> *node)
             if (node->m_key1 < root->m_key1 ||
                 (node->m_key1 == root->m_key1 && node->m_key2 > root->m_key2) ||
                 (node->m_key1 == root->m_key1 && node->m_key2 == root->m_key2 && node->m_key3 < root->m_key3)) {
+                //this node is to the left of the root
                 Node<T> *maxUnderRootLeft = maxValueNode(root->m_left_son);
                 if (maxUnderRootLeft != nullptr) {
                     if (node->m_key1 == maxUnderRootLeft->m_key1 && node->m_key2 == maxUnderRootLeft->m_key2 &&
@@ -718,7 +719,7 @@ Node<T> *AVLtree<T>::closestHigherNode(Node<T> *root,Node<T> *node)
 template <class T>
 Node<T> *AVLtree<T>::closestLowerNode(Node<T> *root,Node<T> *node)
 {
-    if (!node)
+    if (!node || !root)
     {
         return nullptr;
     }
@@ -742,6 +743,7 @@ Node<T> *AVLtree<T>::closestLowerNode(Node<T> *root,Node<T> *node)
             if (node->m_key1 > root->m_key1 ||
                 (node->m_key1 == root->m_key1 && node->m_key2 < root->m_key2) ||
                 (node->m_key1 == root->m_key1 && node->m_key2 == root->m_key2 && node->m_key3 > root->m_key3)) {
+                //this node is to the right of the root
                 Node<T> *minUnderRootRight = minValueNode(root->m_right_son);
                 if (minUnderRootRight != nullptr) {
                     if (node->m_key1 == minUnderRootRight->m_key1 && node->m_key2 == minUnderRootRight->m_key2 &&
