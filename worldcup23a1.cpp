@@ -350,23 +350,22 @@ StatusType world_cup_t::remove_player(int playerId)
     // if because of removing this player a team that was ready has now become NOT ready, we remove this team:
     Node<player_in_team> *tempPlayerInTeamByScore = playerToRemove->m_element.m_player_in_team_by_score;
     Node<Team> *tempTeamContainingPlayer = tempPlayerInTeamByScore->m_element.m_my_team;
-    if (tempTeamContainingPlayer->m_element.check_team_ready())
+    bool teamWasReady = tempTeamContainingPlayer->m_element.check_team_ready();
+    // update num_players in the team and num goalkeepers
+    tempTeamContainingPlayer->m_element.m_num_players--;
+    // checks if the player to remove is a goalkeeper
+    if (tempPlayerInTeamByScore->m_element.m_player->m_element.m_goalkeeper)
     {
+        tempTeamContainingPlayer->m_element.m_num_goalkeepers--;
+    }
 
-        // update num_players in the team and num goalkeepers
-        tempTeamContainingPlayer->m_element.m_num_players--;
-        // checks if the player to remove is a goalkeeper
-        if (tempPlayerInTeamByScore->m_element.m_player->m_element.m_goalkeeper)
-        {
-            tempTeamContainingPlayer->m_element.m_num_goalkeepers--;
-        }
         // remove from tree ready teams
-        if (!tempTeamContainingPlayer->m_element.check_team_ready())
+        if (!tempTeamContainingPlayer->m_element.check_team_ready() || teamWasReady)
         {
             this->m_tree_ready_teams->m_root = this->m_tree_ready_teams->deleteNode(this->m_tree_ready_teams->m_root, playerToRemove->m_element.m_team_id, 0, 0);
             this->m_num_good_teams--;
         }
-    }
+
     // update the team's winning number because this player is removed
     int num = (playerToRemove->m_element.m_goals) - (playerToRemove->m_element.m_cards);
     tempTeamContainingPlayer->m_element.m_winning_num -= num;
