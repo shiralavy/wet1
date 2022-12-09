@@ -66,7 +66,6 @@ public:
     int m_highest_key1;
     int m_highest_key2;
     int m_highest_key3;
-    // int m_lowest_key;
 
     AVLtree() : m_root(nullptr),m_highest_key1(-1), m_highest_key2(-1), m_highest_key3(-1){};
     ~AVLtree();
@@ -85,8 +84,8 @@ public:
     int inOrderVisit(Node<T> *node, int *const array, int start_index);
     int inOrderVisitBetweenRange(Node<T> *node, Node<T> **const array, int start_index, int minRange, int maxRange);
     int inOrderVisitUnite(Node<T> *node, Node<T> **array, int start_index);
-    Node<T> *closestHigherNode(Node<T> *node);
-    Node<T> *closestLowerNode(Node<T> *node);
+    Node<T> *closestHigherNode(Node<T> *root, Node<T>* node);
+    Node<T> *closestLowerNode(Node<T> *root,Node<T> *node);
     Node<T> *closerBetweenTwoOptions(Node<T> *node, Node<T> *option1, Node<T> *option2);
     void merge(Node<T> **array1, Node<T> **array2, Node<T> **mergedArray, int size1, int size2);
     Node<T> *arrayToTree(Node<T> **array, int start, int end);
@@ -505,7 +504,7 @@ Node<T> *AVLtree<T>::deleteNode(Node<T> *root, int key1, int key2, int key3) // 
             else
             { // this means the key is equal to the current node's key
                 if (key1 == this->m_highest_key1 && key2 == this->m_highest_key2 && key3 == this->m_highest_key3){
-                    Node<T>* temp = closestLowerNode(root);
+                    Node<T>* temp = closestLowerNode(this->m_root, root);
                     if (temp) {
                         this->m_highest_key1 = temp->m_key1;
                         this->m_highest_key2 = temp->m_key2;
@@ -669,9 +668,9 @@ int AVLtree<T>::inOrderVisitBetweenRange(Node<T> *node, Node<T> **const array, i
 }
 
 template <class T>
-Node<T> *AVLtree<T>::closestHigherNode(Node<T> *node)
+Node<T> *AVLtree<T>::closestHigherNode(Node<T> *root,Node<T> *node)
 {
-    if (!node)
+    if (!node || !root)
     {
         return nullptr;
     }
@@ -680,6 +679,7 @@ Node<T> *AVLtree<T>::closestHigherNode(Node<T> *node)
         // this node doesn't have a parent or a right son - there is no higher value node in the tree
         return nullptr;
     }
+
     if (node->m_parent && node->m_right_son == nullptr)
     {
         // there is a parent and no right son
@@ -689,6 +689,22 @@ Node<T> *AVLtree<T>::closestHigherNode(Node<T> *node)
         {
             // this node is the left son of the parent, so the parent is bigger
             return node->m_parent;
+        }
+        else{
+            //this node is the right son of the parent so it is bigger than the parent
+            if (node->m_key1 < root->m_key1 ||
+                (node->m_key1 == root->m_key1 && node->m_key2 > root->m_key2) ||
+                (node->m_key1 == root->m_key1 && node->m_key2 == root->m_key2 && node->m_key3 < root->m_key3)) {
+                Node<T> *maxUnderRootLeft = maxValueNode(root->m_left_son);
+                if (maxUnderRootLeft != nullptr) {
+                    if (node->m_key1 == maxUnderRootLeft->m_key1 && node->m_key2 == maxUnderRootLeft->m_key2 &&
+                        node->m_key3 == maxUnderRootLeft->m_key3) {
+                        return root;
+                    } else {
+                        return closestHigherNode(root->m_left_son, node);
+                    }
+                }
+            }
         }
     }
     else
@@ -700,7 +716,7 @@ Node<T> *AVLtree<T>::closestHigherNode(Node<T> *node)
 }
 
 template <class T>
-Node<T> *AVLtree<T>::closestLowerNode(Node<T> *node)
+Node<T> *AVLtree<T>::closestLowerNode(Node<T> *root,Node<T> *node)
 {
     if (!node)
     {
@@ -720,6 +736,22 @@ Node<T> *AVLtree<T>::closestLowerNode(Node<T> *node)
         {
             // this node is the right son of the parent, so the parent is smaller
             return node->m_parent;
+        }
+        else{
+            //this node is the left son of the parent so it is smaller than the parent
+            if (node->m_key1 > root->m_key1 ||
+                (node->m_key1 == root->m_key1 && node->m_key2 < root->m_key2) ||
+                (node->m_key1 == root->m_key1 && node->m_key2 == root->m_key2 && node->m_key3 > root->m_key3)) {
+                Node<T> *minUnderRootRight = minValueNode(root->m_right_son);
+                if (minUnderRootRight != nullptr) {
+                    if (node->m_key1 == minUnderRootRight->m_key1 && node->m_key2 == minUnderRootRight->m_key2 &&
+                        node->m_key3 == minUnderRootRight->m_key3) {
+                        return root;
+                    } else {
+                        return closestLowerNode(root->m_right_son, node);
+                    }
+                }
+            }
         }
     }
     else

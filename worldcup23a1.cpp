@@ -57,8 +57,8 @@ StatusType world_cup_t::add_player(int playerId, Node<Team> *team, int gamesPlay
             insertedPlayer->m_element.m_player_in_scoreboard = insertedPlayerByScore;
 
             // update next and prev players by score
-            insertedPlayerByScore->m_element.m_next_player_by_score = this->m_tree_players_by_score->closestHigherNode(insertedPlayerByScore);
-            insertedPlayerByScore->m_element.m_prev_player_by_score = this->m_tree_players_by_score->closestLowerNode(insertedPlayerByScore);
+            insertedPlayerByScore->m_element.m_next_player_by_score = this->m_tree_players_by_score->closestHigherNode(this->m_tree_players_by_score->m_root, insertedPlayerByScore);
+            insertedPlayerByScore->m_element.m_prev_player_by_score = this->m_tree_players_by_score->closestLowerNode(this->m_tree_players_by_score->m_root,insertedPlayerByScore);
 
             // update the next and prev for the players that were affected
             if (insertedPlayerByScore->m_element.m_next_player_by_score) {
@@ -295,8 +295,8 @@ StatusType world_cup_t::add_player(int playerId, int teamId, int gamesPlayed,
             insertedPlayer->m_element.m_player_in_scoreboard = insertedPlayerByScore;
 
             // update next and prev players by score
-            insertedPlayerByScore->m_element.m_next_player_by_score = this->m_tree_players_by_score->closestHigherNode(insertedPlayerByScore);
-            insertedPlayerByScore->m_element.m_prev_player_by_score = this->m_tree_players_by_score->closestLowerNode(insertedPlayerByScore);
+            insertedPlayerByScore->m_element.m_next_player_by_score = this->m_tree_players_by_score->closestHigherNode(this->m_tree_players_by_score->m_root,insertedPlayerByScore);
+            insertedPlayerByScore->m_element.m_prev_player_by_score = this->m_tree_players_by_score->closestLowerNode(this->m_tree_players_by_score->m_root,insertedPlayerByScore);
 
             // update the next and prev for the players that were affected
             if (insertedPlayerByScore->m_element.m_next_player_by_score) {
@@ -622,7 +622,7 @@ StatusType world_cup_t::unite_teams(int teamId1, int teamId2, int newTeamId)
         this->m_num_good_teams++;
     }
 
-    // update the heighest key in each tree of players
+    // update the highest key in each tree of players
     newTeam->m_element.m_tree_players_in_team_by_id->m_highest_key1 = mergeArrayID[(numPlayersTeam1) + (numPlayersTeam2)-1]->m_key1;
     newTeam->m_element.m_tree_players_in_team_by_id->m_highest_key2 = mergeArrayID[(numPlayersTeam1) + (numPlayersTeam2)-1]->m_key2;
     newTeam->m_element.m_tree_players_in_team_by_id->m_highest_key3 = mergeArrayID[(numPlayersTeam1) + (numPlayersTeam2)-1]->m_key3;
@@ -766,10 +766,6 @@ output_t<int> world_cup_t::get_closest_player(int playerId, int teamId)
     if (!playerInTeamById){
         return StatusType::FAILURE;
     }
-    //int goals = playerInTeamById->m_element.m_player->m_element.m_goals;
-    //int cards = playerInTeamById->m_element.m_player->m_element.m_cards;
-    //Node<player_in_team> *playerInTeamByScore = currentTeam->m_element.m_tree_players_in_team_by_score->findNode(currentTeam->m_element.m_tree_players_in_team_by_score->m_root, goals, cards, playerId);
-
     Node<player_in_scoreboard> *playerInScoreBoard = playerInTeamById->m_element.m_player->m_element.m_player_in_scoreboard;
     Node<player_in_scoreboard> *closest = this->m_tree_players_by_score->closerBetweenTwoOptions(playerInScoreBoard, playerInScoreBoard->m_element.m_next_player_by_score, playerInScoreBoard->m_element.m_prev_player_by_score);
 

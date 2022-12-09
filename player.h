@@ -67,10 +67,6 @@ class player_in_team {
     public:
     int m_player_id;
     int m_team_id;
-    //int m_games_played;
-    //int m_goals;
-    //int m_cards;
-    //bool m_goalkeeper;
     Node<player>* m_player;
     Node<Team>* m_my_team;
 
@@ -107,11 +103,6 @@ class player_in_team {
 class player_in_scoreboard {
     public:
     int m_player_id;
-    //int m_team_id;
-    //int m_games_played;
-    //int m_goals;
-    //int m_cards;
-    //bool m_goalkeeper;
     Node<player>* m_player;
     Node<player_in_scoreboard>* m_prev_player_by_score; //inside linked list sorted by player score
     Node<player_in_scoreboard>* m_next_player_by_score; //inside linked list sorted by player score

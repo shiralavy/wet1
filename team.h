@@ -16,7 +16,6 @@ public:
     int m_num_goalkeepers;
     int m_winning_num;
     int m_games_played_by_team;
-    //bool m_ready_to_play; //boolean value if this team is ready to play (has 11 players and one goalkeeper)
     AVLtree<player_in_team>* m_tree_players_in_team_by_score;
     AVLtree<player_in_team>* m_tree_players_in_team_by_id;
 
@@ -66,8 +65,6 @@ class ready_team {
 
 public:
     int m_team_id;
-    //int m_points;
-    //bool m_ready_to_play; //boolean value if this team is ready to play (has 11 players and one goalkeeper)
     Node<Team>* m_team;
 
     /***********************************************************
