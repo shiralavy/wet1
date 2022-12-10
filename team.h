@@ -42,13 +42,14 @@ public:
     ~Team()
     {
         //  std::cout << "Dtor for Team called" << std::endl;
-
-        if (m_tree_players_in_team_by_score) {
-            delete m_tree_players_in_team_by_score;
+        if (m_num_players == 0) {
+            if (m_tree_players_in_team_by_score) {
+                delete m_tree_players_in_team_by_score;
+            }
+            if (m_tree_players_in_team_by_id)
+                delete m_tree_players_in_team_by_id;
         }
-        if (m_tree_players_in_team_by_id)
-            delete m_tree_players_in_team_by_id;
-    };
+        };
 
 
 

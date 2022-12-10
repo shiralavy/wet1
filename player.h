@@ -20,15 +20,13 @@ class player {
     int m_games_played;
     int m_goals;
     int m_cards;
-    //int m_closest_player;
     bool m_goalkeeper;
     //shared_ptr<Node<player_in_team>> player_in_team;
     //shared_ptr<Node<player_in_scoreboard>> player_in_scoreboard;
     Node<player_in_team>* m_player_in_team_by_score;
     Node<player_in_team>* m_player_in_team_by_id;
     Node<player_in_scoreboard>* m_player_in_scoreboard;
-
-
+    Node<Team>* m_my_team;
     //public:
     /***********************************************************
          * Player: constructor for Player
@@ -43,7 +41,7 @@ class player {
 
     player(int player_id, int team_id, int games_played, int goals, int cards, bool goalkeeper) : 
     m_player_id(player_id), m_team_id(team_id), m_games_played(games_played), m_goals(goals), m_cards(cards), 
-    m_goalkeeper(goalkeeper), m_player_in_team_by_score(nullptr), m_player_in_team_by_id(nullptr), m_player_in_scoreboard(nullptr)
+    m_goalkeeper(goalkeeper), m_player_in_team_by_score(nullptr), m_player_in_team_by_id(nullptr), m_player_in_scoreboard(nullptr), m_my_team(nullptr)
     {};
 
     /***********************************************************
@@ -54,6 +52,7 @@ class player {
         m_player_in_team_by_score = nullptr;
         m_player_in_team_by_id = nullptr;
         m_player_in_scoreboard = nullptr;
+        m_my_team = nullptr;
     };
 
     
@@ -65,7 +64,7 @@ class player_in_team {
     int m_player_id;
     int m_team_id;
     Node<player>* m_player;
-    Node<Team>* m_my_team;
+    //Node<Team>* m_my_team;
 
    /***********************************************************
          * player_in_team: constructor for player_in_team
@@ -80,8 +79,8 @@ class player_in_team {
          * @param m_my_team a pointer to the team this player belongs to
     ***********************************************************/
 
-    player_in_team(int player_id, int team_id, Node<player>* player = nullptr, Node<Team>* team = nullptr) : 
-    m_player_id(player_id), m_team_id(team_id), m_player(player), m_my_team(team)
+    player_in_team(int player_id, int team_id, Node<player>* player = nullptr) :
+    m_player_id(player_id), m_team_id(team_id), m_player(player)
     {};
 
     /***********************************************************
@@ -90,7 +89,7 @@ class player_in_team {
 
     ~player_in_team(){
         m_player = nullptr;
-        m_my_team = nullptr;
+        //m_my_team = nullptr;
       //  delete m_player;
        // delete m_my_team;
     }
