@@ -871,7 +871,7 @@ void AVLtree<T>::merge(Node<T> **array1, Node<T> **array2, Node<T> **mergedArray
                     k++;
                     continue;
                 }
-                else if (array1[i]->m_key2 > array2[j]->m_key2)
+                else if (array1[i]->m_key3 > array2[j]->m_key3)
                 {
                     mergedArray[k] = array2[j];
                     j++;

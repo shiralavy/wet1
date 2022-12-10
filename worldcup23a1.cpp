@@ -33,7 +33,7 @@ StatusType world_cup_t::add_player(int playerId, Node<Team> *team, int gamesPlay
             insertedPlayer->m_element.m_my_team = team;
             player_in_team newPlayerInTeamByScore(playerId, team->m_element.m_team_id,  insertedPlayer);
             team->m_element.m_tree_players_in_team_by_score->m_root = team->m_element.m_tree_players_in_team_by_score->insertNode(team->m_element.m_tree_players_in_team_by_score->m_root, goals, cards, playerId, newPlayerInTeamByScore);
-            team->m_element.m_winning_num = team->m_element.m_winning_num + goals - cards;
+            //team->m_element.m_winning_num = team->m_element.m_winning_num + goals - cards;
 
             player_in_team newPlayerInTeamByID(playerId, team->m_element.m_team_id, insertedPlayer);
             team->m_element.m_tree_players_in_team_by_score->m_root = team->m_element.m_tree_players_in_team_by_score->insertNode(team->m_element.m_tree_players_in_team_by_score->m_root, playerId, 0, 0, newPlayerInTeamByID);
@@ -317,7 +317,7 @@ StatusType world_cup_t::add_player(int playerId, int teamId, int gamesPlayed,
             insertedPlayer->m_element.m_my_team = teamForNewPlayer;
             player_in_team newPlayerInTeamByScore(playerId, teamId, insertedPlayer);
             teamForNewPlayer->m_element.m_tree_players_in_team_by_score->m_root = teamForNewPlayer->m_element.m_tree_players_in_team_by_score->insertNode(teamForNewPlayer->m_element.m_tree_players_in_team_by_score->m_root, goals, cards, playerId, newPlayerInTeamByScore);
-            teamForNewPlayer->m_element.m_winning_num = teamForNewPlayer->m_element.m_winning_num + goals - cards;
+            //teamForNewPlayer->m_element.m_winning_num = teamForNewPlayer->m_element.m_winning_num + goals - cards;
 
             // insert player into AVL TREE of players inside the appropriate team sorted by id
             player_in_team newPlayerInTeamByID(playerId, teamId, insertedPlayer);
@@ -645,8 +645,6 @@ StatusType world_cup_t::unite_teams(int teamId1, int teamId2, int newTeamId) {
     team2->m_element.m_tree_players_in_team_by_score->inOrderVisitUnite(
             team2->m_element.m_tree_players_in_team_by_score->m_root, arrayPlayersScore2, 0);
 
-    // here we might have deleted the contanet of the array !!!!!!
-    // dont forget to delete all new
     if (newTeamId != teamId1 && newTeamId != teamId2) {
         // the newTeam is not team 1 or 2
         this->add_team(newTeamId, team1->m_element.m_points + team2->m_element.m_points);
@@ -875,12 +873,18 @@ StatusType world_cup_t::unite_teams(int teamId1, int teamId2, int newTeamId) {
             return StatusType::INVALID_INPUT;
         } else if (teamId < 0) {
             // saving all of the players in the array output
+            if (this->m_num_players == 0){
+                return StatusType::FAILURE;
+            }
             this->m_tree_players_by_score->inOrderVisit(this->m_tree_players_by_score->m_root, output, 0);
         } else {
             Node<Team> *currentTeam = this->m_tree_teams_by_id->findNode(this->m_tree_teams_by_id->m_root, teamId, 0,
                                                                          0);
             if (!currentTeam) {
                 // team does not exist in the tournament
+                return StatusType::FAILURE;
+            }
+            if (currentTeam->m_element.m_num_players == 0) {
                 return StatusType::FAILURE;
             }
             // saving all of the players in the array output
@@ -935,10 +939,9 @@ StatusType world_cup_t::unite_teams(int teamId1, int teamId2, int newTeamId) {
             winning_nums[i] = goodTeams[i]->m_element.m_team->m_element.m_winning_num;
             teams[i] = goodTeams[i]->m_element.m_team_id;
         }
-        // MAKE SURE THIS DOESNT DELETE ALL OF THE VALUES IN THE NODES
         delete[] goodTeams;
 
-        for (int size = numGoodTeams; size > 0; size = std::round(size / 2)) {
+        for (int size = numGoodTeams; size > 0; size = (size+1) / 2) {
             if (size == 1) {
                 delete[] winning_nums;
                 int id = teams[0];
@@ -949,7 +952,8 @@ StatusType world_cup_t::unite_teams(int teamId1, int teamId2, int newTeamId) {
                 if (i + 1 == size) {
                     winning_nums[i / 2] = winning_nums[i];
                     teams[i / 2] = teams[i];
-                } else {
+                }
+                else {
                     if (winning_nums[i] < winning_nums[i + 1]) {
                         teams[i / 2] = teams[i + 1];
                     } else if (winning_nums[i] > winning_nums[i + 1]) {
